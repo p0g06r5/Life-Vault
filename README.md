@@ -46,3 +46,19 @@ For migration, existing `lifevault-v2` records are retained and earlier `lifevau
 ## Creative direction
 
 Warm ivory / charcoal, muted evergreen accent, editorial display serif with legible UI sans, restrained lines instead of dashboard cards, page-like detail views, context-preserving categories, subtle interaction feedback, accessible keyboard focus, and mobile-first navigation.
+
+## Collections & page-specific sharing (prototype)
+
+Choose **Collections → Make a collection** to create a page for a trip, visit, event, or personal story. Each collection can contain a title, date, location, story and up to 12 photos. In the collection page:
+
+- **Share this page** opens the mobile share sheet where supported, or copies the URL.
+- **See friend's view** opens the same standalone `/share#...` page that someone receiving the link sees.
+- That share page intentionally has no navigation into the sender's profile, other collections, or vault.
+- Only the selected collection's title, place, date, text and **public HTTPS photo URLs** are included in the snapshot link.
+- Photos added directly from a device are compressed and stored **locally in the creator's browser**. They appear locally but are **not included** in share links. To make photos shareable, use publicly hosted HTTPS URLs until a secure upload backend is built.
+- Links contain the page snapshot encoded into the URL fragment; anyone with the URL can view it. **No account permissions, expiration, revocation, passwords, or real access controls** are implemented. The snapshot does not update if the creator edits the collection. Do not put secrets or sensitive documents in snapshots.
+- Browser localStorage has size limits; large photo collections can fill it. The editor reports storage failures.
+
+The `/share` route renders **only** the share viewer, bypassing the normal app completely. `/collections` and `/collections/:id` are browser-local editing pages. Existing `lifevault-v2` entries remain unchanged; collections use a separate `lifevault-collections-v1` key.
+
+The next production milestone is authenticated, encrypted-at-rest cloud photo storage and server-side per-collection access controls, so uploaded photos can actually travel with shared pages.
