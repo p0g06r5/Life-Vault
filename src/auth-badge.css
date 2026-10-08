@@ -1,1 +1,7 @@
 .lv-account-badge{border-top:1px solid var(--border);padding:14px 0;margin-top:8px}.lv-account-badge a,.lv-account-badge button{display:flex;align-items:center;gap:10px;color:var(--accent);font-size:11px;text-decoration:none;padding:10px 3px}.lv-account-user{display:flex;align-items:center;gap:9px}.lv-account-user span{display:grid;gap:4px}.lv-account-user strong{font-size:11px}.lv-account-user small,.lv-account-badge>small{color:var(--muted);font-size:9px}.lv-account-badge button{color:var(--muted)}
+.lv-account-photo{position:relative;width:40px;height:40px;border-radius:50%;background:var(--soft);flex-shrink:0;display:grid;place-items:center;overflow:hidden;color:var(--accent);padding:0}
+.lv-account-photo img{height:100%;width:100%;object-fit:cover}
+.lv-account-photo-edit{position:absolute;right:0;bottom:0;background:var(--paper);border-radius:50%;padding:2px;box-sizing:content-box}
+.lv-account-operations{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+.lv-account-operations button{font-size:10px!important;padding:7px 2px!important}
+.lv-account-error{display:block;color:#a04237;font-size:10px;padding:8px 2px}
