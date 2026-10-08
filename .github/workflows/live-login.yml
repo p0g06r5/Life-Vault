@@ -7,6 +7,22 @@ jobs:
   smoke:
     runs-on: ubuntu-latest
     steps:
+      - name: Verify private homepage redirects instead of throwing error 1101
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL=https://life-vault-c3b.pages.dev/
+          for attempt in $(seq 1 12); do
+            CODE=$(curl -sS --max-time 15 -o /tmp/lv-private.html -D /tmp/lv-private.headers -w '%{http_code}' "$URL" || true)
+            if [ "$CODE" = "302" ] && grep -Eiq '^location: https://life-vault-c3b.pages.dev/login' /tmp/lv-private.headers; then
+              echo "CONFIRMED: unauthenticated homepage redirects to login (302), no Worker exception."
+              exit 0
+            fi
+            echo "Attempt $attempt: expected 302 to login, got $CODE"
+            sleep 8
+          done
+          echo 'Private homepage has not recovered; inspect Pages runtime logs' >&2
+          exit 1
       - name: Check login route and Pages service binding
         shell: bash
         run: |
