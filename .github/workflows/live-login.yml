@@ -1,0 +1,28 @@
+name: Verify Live Login Integration
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check login route and Pages service binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          PAGE=https://life-vault-c3b.pages.dev
+          curl --fail --silent --show-error --max-time 15 "$PAGE/login" -o /tmp/lv-login.html
+          grep -qi 'LifeVault' /tmp/lv-login.html
+          for attempt in $(seq 1 12); do
+            CODE=$(curl --silent --show-error --max-time 15 -o /tmp/lv-user.json -w '%{http_code}' "$PAGE/api/v1/auth/me" || true)
+            if [ "$CODE" = "401" ] && jq -e '.user == null' /tmp/lv-user.json; then
+              echo "CONFIRMED: Frontend login route and authenticated API proxy are connected."
+              exit 0
+            fi
+            echo "Attempt $attempt: API status $CODE. Expected 401 before sign-in."
+            cat /tmp/lv-user.json 2>/dev/null || true
+            sleep 8
+          done
+          echo "Cloudflare Pages still needs Service binding BACKEND_API -> life-vault-backend under Settings > Bindings, followed by redeploy." >&2
+          exit 1
