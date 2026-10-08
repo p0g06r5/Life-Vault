@@ -16,5 +16,7 @@ jobs:
           node-version: '22'
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Test résumé parsing
+        run: npm test
       - name: Build frontend
         run: npm run build
