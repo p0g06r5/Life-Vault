@@ -4,7 +4,7 @@ An editorial, architecture-inspired personal archive built in React + Vite. Life
 
 ## Experience
 
-- **Home** — spacious personal introduction, chapter directory and only recently **user-added** items (no automatic promotion of POS Health or projects into a hero card).
+- **Home** — spacious personal introduction, chapter directory and personal moments and collections rather than default work examples.
 - **Timeline** — chronological year-grouped chapters.
 - **Archive** — full-text browser search, category filters, and deep links.
 - **Experience** — each organization opens to its own page; projects can link to their related experience.
@@ -62,3 +62,7 @@ Choose **Collections → Make a collection** to create a page for a trip, visit,
 The `/share` route renders **only** the share viewer, bypassing the normal app completely. `/collections` and `/collections/:id` are browser-local editing pages. Existing `lifevault-v2` entries remain unchanged; collections use a separate `lifevault-collections-v1` key.
 
 The next production milestone is authenticated, encrypted-at-rest cloud photo storage and server-side per-collection access controls, so uploaded photos can actually travel with shared pages.
+
+## Neutral first-use experience
+
+New visitors begin with an empty personal space, without any hardcoded employer, employee name or POS project. The data loader strips only the exact untouched legacy demonstration records from older browser storage while retaining edited entries and other saved content. Collections are stored separately and are unchanged.
