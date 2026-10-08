@@ -8,7 +8,8 @@ const PURPOSES={
  chapters:'Suggest 2-4 concise chapter headings for the collection based ONLY on its supplied title, place, date, notes and photo captions. Never infer image contents from file names. Output one heading per line; no numbering or commentary.',
  resume:'Improve the supplied professional summary into concise, natural, credible resume language. Do not invent years, tools, metrics, job titles or accomplishments. Output only the improved summary.',
  project:'Polish the supplied project description for a professional portfolio. Preserve all facts; never fabricate achievements, numbers, technologies, or scope. Output only the proposed description.',
- tags:'Suggest up to 6 simple topical tags for the supplied memory text, without guessing unknown details. Output a comma-separated list of tags.'
+ tags:'Suggest up to 6 simple topical tags for the supplied memory text, without guessing unknown details. Output a comma-separated list of tags.',
+ photo_order:'Arrange the listed photo IDs for a coherent story progression based ONLY on their supplied captions. Do not infer, recognize, or describe actual pixels or unseen image contents. Return ONLY comma-separated IDs from the input. Include each ID exactly once, no other text.'
 };
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'}});
 export async function onRequestPost({request,env}){
