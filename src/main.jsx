@@ -19,7 +19,7 @@ function App(){
  const add=(type='Project',org='')=>{setEditing(null);setForm({...emptyForm(type),organizationId:org});setModal('entry')};
  const edit=(type,item)=>{setEditing(item.id);setForm({...emptyForm(type),...item,type});setModal('entry')};
  const submit=e=>{e.preventDefault();const key=typeKeys[form.type];const target=form.type==='Experience'?'organization':'title';if(!String(form[target]||'').trim())return;const item={...form,id:editing||safeId(),[target]:form[target].trim()};delete item.type;if(form.type!=='Project')delete item.organizationId;setData(prev=>({...prev,[key]:editing?prev[key].map(x=>x.id===editing?item:x):[...prev[key],item]}));setModal('')};
- const remove=(type,item)=>{if(!confirm('Delete this entry? This cannot be undone.'))return;const key=typeKeys[type];setData(prev=>({...prev,[key]:prev[key].filter(x=>x.id!==item.id),...(type==='Experience'?{projects:prev.projects.map(x=>x.organizationId===item.id?{...x,organizationId:''}:x)}:{})}));if(path.endsWith('/'+encodeURIComponent(item.id)))go('/'+key)};
+ const remove=(type,item)=>{if(!confirm('Delete this entry? This cannot be undone.'))return;const key=typeKeys[type];setData(prev=>({...prev,[key]:prev[key].filter(x=>x.id!==item.id),...(type==='Experience'?{projects:prev.projects.map(x=>x.organizationId===item.id?{...x,organizationId:''}:x)}:{})}));if(path.endsWith('/'+encodeURIComponent(item.id)))go(type==='Experience'?'/experience':type==='Project'?'/projects':'/'+key)};
  const saveProfile=e=>{e.preventDefault();setData(prev=>({...prev,profile:profileDraft}));setModal('')};
  const orgById=id=>data.experiences.find(x=>x.id===id);
  const filtered=xs=>xs.filter(x=>(!preview||x.visibility!=='Private')&&[x.organization,x.title,x.role,x.description,x.issuer].join(' ').toLowerCase().includes(query.toLowerCase()));
@@ -30,8 +30,8 @@ function App(){
  const search=<label className="lv-search"><Search size={18}/><input aria-label="Search this section" placeholder="Search this section..." value={query} onChange={e=>setQuery(e.target.value)}/></label>;
  const expId=path.startsWith('/experience/')?decodeURIComponent(path.slice(12)):null;
  const projectId=path.startsWith('/projects/')?decodeURIComponent(path.slice(10)):null;
- const exp=data.experiences.find(x=>x.id===expId);
- const project=data.projects.find(x=>x.id===projectId);
+ const exp=data.experiences.find(x=>x.id===expId&&(!preview||x.visibility!=='Private'));
+ const project=data.projects.find(x=>x.id===projectId&&(!preview||x.visibility!=='Private'));
  const category=links.find(([url])=>url==='/'?path==='/':path===url||path.startsWith(url+'/'));
  return <div className="lv-app">
  <aside className={'lv-side '+(menu?'open':'')}><button className="lv-brand" onClick={()=>go('/')}><span><Layers3 size={24}/></span>LifeVault</button><div className="lv-side-caption">MY SPACE</div><nav>{links.map(([url,label,Icon])=><button key={url} className={(url==='/'?path==='/':path===url||path.startsWith(url+'/'))?'selected':''} onClick={()=>go(url)}><Icon size={19}/>{label}</button>)}</nav><div className="lv-side-bottom"><div className="lv-motto"><Heart size={22}/><strong>Every chapter counts.</strong><p>Make room for the moments that make you, you.</p></div><button className="lv-side-about" onClick={()=>setModal('about')}><Settings size={17}/> About LifeVault</button></div></aside>
