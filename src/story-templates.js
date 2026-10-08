@@ -1,0 +1,10 @@
+// A focused set of prompts. Each is guidance, not pre-populated personal history.
+export const storyTemplates=[
+ {id:'travel',name:'Trips & places',short:'A weekend away, favorite place or adventure',icon:'map-pin',title:'My weekend in…',place:'Where did you go?',story:'What made this trip memorable?',hint:'Add travel photographs, a location and a favorite moment.',sample:'Example: Autumn weekend in Vermont'},
+ {id:'people',name:'People & family',short:'Family moments and time with people who matter',icon:'heart',title:'A day together',place:'Where were you together?',story:'Who was there, and what do you want to remember?',hint:'Add a few photos of the people and moments worth keeping.',sample:'Example: Our family picnic'},
+ {id:'celebration',name:'Celebrations',short:'Birthdays, weddings and meaningful occasions',icon:'party-popper',title:'A day to celebrate',place:'Where did you celebrate?',story:'What were you celebrating? What made it special?',hint:'Pick your favorite highlights and tell the story behind them.',sample:'Example: Graduation day'},
+ {id:'milestone',name:'Life milestones',short:'New beginnings, firsts and proud achievements',icon:'star',title:'A new chapter',place:'Where did it happen?',story:'What changed, and why does it matter?',hint:'Create a little page for a moment you are proud of.',sample:'Example: My first day at a new job'},
+ {id:'creative',name:'Things I made',short:'Hobbies, creative work and personal projects',icon:'palette',title:'Something I created',place:'Where did you make it?',story:'What inspired this project?',hint:'Keep process photos and the finished result together.',sample:'Example: My first pottery project'},
+ {id:'memory',name:'Everyday moments',short:'Ordinary days that turned into good memories',icon:'book-open',title:'A little moment',place:'Where was it?',story:'What happened that you do not want to forget?',hint:'No big event required. Sometimes one picture says enough.',sample:'Example: Sunday morning at home'}
+];
+export const templateFor=(kind)=>storyTemplates.find(x=>x.id===kind)||storyTemplates[5];
