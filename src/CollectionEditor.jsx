@@ -5,7 +5,7 @@ import './collection-editor.css';
 const pad=n=>String(n).padStart(2,'0');
 function normalizeDate(v=''){return {month:String(v).slice(0,7),day:/^\d{4}-\d{2}-\d{2}$/.test(v)?v:''}}
 export default function CollectionEditor({draft,setDraft,edit,onClose,onSave,addLocal,removePhoto,notice}){
- const [step,setStep]=useState(0),[dragging,setDragging]=useState(false),[busy,setBusy]=useState(false),[exactDate,setExactDate]=useState(Boolean(normalizeDate(draft.date).day)),[moving,setMoving]=useState(null);
+ const [step,setStep]=useState(0),[dragging,setDragging]=useState(false),[busy,setBusy]=useState(false),[aiBusy,setAiBusy]=useState(false),[aiError,setAiError]=useState(''),[exactDate,setExactDate]=useState(Boolean(normalizeDate(draft.date).day)),[moving,setMoving]=useState(null);
  const picker=useRef(null);
  const title=draft.title?.trim()||'Untitled collection';
  const set=(key,value)=>setDraft(x=>({...x,[key]:value}));
@@ -37,6 +37,22 @@ export default function CollectionEditor({draft,setDraft,edit,onClose,onSave,add
   setDraft(x=>{const a=[...x.photos],from=a.findIndex(p=>p.id===source),to=a.findIndex(p=>p.id===target);if(from<0||to<0)return x;const [item]=a.splice(from,1);a.splice(to,0,item);return {...x,photos:a}});
   setMoving(null);
  }
+ async function aiArrange(){
+  if(aiBusy||draft.photos.length<2)return;
+  setAiBusy(true);setAiError('');
+  try{
+   const photos=draft.photos;
+   const text='Photo IDs and user-provided captions (no actual images):\n'+photos.map(p=>p.id+': '+(p.caption?.trim()||'No caption')).join('\n');
+   const response=await fetch('/api/assist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({purpose:'photo_order',text})});
+   const payload=await response.json().catch(()=>({}));
+   if(!response.ok)throw Error(payload.error||'AI arrangement is unavailable.');
+   const ids=String(payload.suggestion||'').split(/[\s,\n]+/).map(v=>v.trim()).filter(Boolean);
+   const existing=new Set(photos.map(p=>p.id));
+   if(ids.length!==photos.length||new Set(ids).size!==photos.length||ids.some(id=>!existing.has(id)))throw Error('AI did not return a valid photo order. Your photos were not changed.');
+   const indexed=new Map(photos.map(p=>[p.id,p]));
+   setDraft(d=>({...d,photos:ids.map(id=>indexed.get(id)).filter(Boolean)}));
+  }catch(e){setAiError(e.message||'Could not reorder your photos.')}finally{setAiBusy(false)}
+ }
  const canContinue=Boolean(draft.title?.trim());
  return <div className="lv-create-overlay" role="dialog" aria-modal="true" aria-label="Create a collection">
   <div className="lv-create-shell">
@@ -63,7 +79,7 @@ export default function CollectionEditor({draft,setDraft,edit,onClose,onSave,add
      </div>
      <input ref={picker} hidden type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple onChange={e=>{add(e.target.files);e.target.value=''}}/>
      {draft.photos.length>0&&<div className="lv-create-photo-section">
-       <div className="lv-create-photo-heading"><strong>{draft.photos.length} / 12 photographs</strong><button type="button" onClick={arrange}><Sparkles size={15}/> Smart arrange</button></div>
+       <div className="lv-create-photo-heading"><strong>{draft.photos.length} / 12 photographs</strong><div className="lv-create-photo-tools"><button type="button" onClick={arrange}><Sparkles size={15}/> Smart arrange</button><button type="button" onClick={aiArrange} disabled={aiBusy||draft.photos.length<2}><Sparkles size={15}/> {aiBusy?'Curating…':'AI story order'}</button></div></div>
        <div className="lv-create-photos">{draft.photos.map((photo,i)=><article key={photo.id} className="lv-create-photo" draggable onDragStart={e=>{e.stopPropagation();setMoving(photo.id);e.dataTransfer.effectAllowed='move'}} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.stopPropagation();e.preventDefault();dragPhoto(moving,photo.id)}} onDragEnd={()=>setMoving(null)}>
         <div className="lv-create-photo-frame"><img alt={photo.caption||'Collection photo'} src={photo.url}/><span>{pad(i+1)}</span><button aria-label="Remove photo" type="button" onClick={()=>removePhoto(photo.id)}><Trash2 size={15}/></button></div>
         <label><GripVertical size={14}/> <input value={photo.caption||''} maxLength={180} placeholder="Add a caption…" onChange={e=>setDraft(x=>({...x,photos:x.photos.map(p=>p.id===photo.id?{...p,caption:e.target.value}:p)}))}/></label>
