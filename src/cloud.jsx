@@ -13,13 +13,24 @@ export function useAccount(){const ctx=useContext(Context);if(!ctx)throw Error('
 export function useCloudDoc(kind){
  const context=useAccount();
  const initial=context.documents[kind];
- const [value,setValue]=useState(()=>initial.body);
+ const [value,setValue]=useState(()=>{
+  if(kind!=='collections')return initial.body;
+  // Device-only photo bytes are never sent to D1 and are scoped to this account.
+  let photos={};try{photos=JSON.parse(localStorage.getItem('lifevault-device-photos-'+context.user.id)||'{}')||{}}catch{}
+  return Array.isArray(initial.body)?initial.body.map(album=>({...album,photos:[...(album.photos||[]),...((photos[album.id]||[]).filter(p=>p.mode==='local'))]})):initial.body;
+ });
  const [status,setStatus]=useState('');
  const first=useRef(true),savedVersion=useRef(initial.version),pending=useRef(Promise.resolve());
  useEffect(()=>{
   if(first.current){first.current=false;return}
   const timer=setTimeout(()=>{
-   const captured=value;
+   let captured=value;
+   if(kind==='collections'){
+    const devicePhotos={};
+    for(const album of value){const local=(album.photos||[]).filter(p=>p.mode==='local');if(local.length)devicePhotos[album.id]=local;}
+    try{localStorage.setItem('lifevault-device-photos-'+context.user.id,JSON.stringify(devicePhotos))}catch{setStatus('Device photo storage is full. Add fewer photos.')}
+    captured=value.map(album=>({...album,photos:(album.photos||[]).filter(p=>p.mode==='remote')}));
+   }
    setStatus('Saving…');
    pending.current=pending.current.catch(()=>{}).then(async()=>{
     const result=await request('/documents/'+kind,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({body:captured,version:savedVersion.current})});
