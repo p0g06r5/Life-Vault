@@ -5,6 +5,7 @@ import './collections.css';
 import AiSuggest from './ai.jsx';
 import {useCloudDoc} from './cloud.jsx';
 import CollectionEditor from './CollectionEditor.jsx';
+import {formatCollectionDate} from './collection-date.js';
 const KEY='lifevault-collections-v1';
 const fresh=()=>({title:'',place:'',date:'',story:'',photos:[]});
 function getInitial(){
@@ -78,7 +79,7 @@ export default function Collections({path,go,preview=false}){
  </>}
  {detailId&&active&&<>
  <button className="collect-back" onClick={()=>go('/collections')}><ArrowLeft size={17}/> All collections</button>
- <article className="album-page"><header className="album-top"><span>MY PERSONAL COLLECTION</span><span>{active.date||'A PAGE FROM MY LIFE'}</span></header><h1>{active.title}</h1><div className="album-info">{active.place&&<span><MapPin size={16}/>{active.place}</span>}<span>{active.photos?.length||0} photos</span></div>
+ <article className="album-page"><header className="album-top"><span>MY PERSONAL COLLECTION</span><span>{formatCollectionDate(active.date)||'A PAGE FROM MY LIFE'}</span></header><h1>{active.title}</h1><div className="album-info">{active.place&&<span><MapPin size={16}/>{active.place}</span>}<span>{active.photos?.length||0} photos</span></div>
  {active.photos?.length>0?<div className={'album-gallery '+(active.photos.length===1?'alone':'')}>{active.photos.map((photo,i)=><figure key={photo.id||i}><img src={photo.url} alt={photo.caption||'Collection photo '+(i+1)}/>{photo.caption&&<figcaption>{photo.caption}</figcaption>}</figure>)}</div>:<div className="album-empty-photo"><Images size={32}/><span>Photos and memories can live together here.</span></div>}
  {active.story&&<p className="album-story">{active.story}</p>}
  </article>
