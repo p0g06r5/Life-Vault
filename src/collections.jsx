@@ -1,7 +1,8 @@
 import React,{useEffect,useState} from 'react';
-import {Plus,ArrowLeft,ArrowRight,ArrowUpRight,MapPin,Images,Share2,Trash2,Pencil,Link2,Upload,Check,Copy,Eye,ShieldAlert,Image as ImageIcon} from 'lucide-react';
+import {Plus,ArrowLeft,ArrowRight,ArrowUpRight,MapPin,Images,Share2,Trash2,Pencil,Link2,Upload,Check,Copy,Eye,ShieldAlert,Image as ImageIcon,LockKeyhole,Sparkles} from 'lucide-react';
 import {makeShareLink,validRemoteImage,imageIsShareable} from './share.jsx';
 import './collections.css';
+import AiSuggest from './ai.jsx';
 const KEY='lifevault-collections-v1';
 const fresh=()=>({title:'',place:'',date:'',story:'',photos:[]});
 function getInitial(){
@@ -33,6 +34,7 @@ export default function Collections({path,go,preview=false}){
  const [albums,setAlbums]=useState(getInitial);
  const [edit,setEdit]=useState(null),[draft,setDraft]=useState(fresh),[showEditor,setShowEditor]=useState(false),[newUrl,setNewUrl]=useState(''),[notice,setNotice]=useState(''),[copied,setCopied]=useState(false);
  const [storageError,setStorageError]=useState('');
+ const [smartQuery,setSmartQuery]=useState('');
  useEffect(()=>{try{localStorage.setItem(KEY,JSON.stringify(albums));setStorageError('')}catch{setStorageError('Browser storage is full. Your latest edits could not be saved; use smaller or fewer local photos.')}},[albums]);
  useEffect(()=>{if(!notice)return;const t=setTimeout(()=>setNotice(''),4500);return()=>clearTimeout(t)},[notice]);
  const detailId=path.startsWith('/collections/')?decodeURIComponent(path.slice('/collections/'.length)):null;
@@ -88,6 +90,9 @@ export default function Collections({path,go,preview=false}){
  <label>Page title *</label><input required maxLength={180} placeholder="e.g. My trip to Georgia" value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})}/>
  <div className="collect-form-cols"><div><label>Place</label><input value={draft.place||''} maxLength={180} placeholder="Georgia, USA" onChange={e=>setDraft({...draft,place:e.target.value})}/></div><div><label>When</label><input type="date" value={draft.date||''} onChange={e=>setDraft({...draft,date:e.target.value})}/></div></div>
  <label>Your story</label><textarea rows={4} maxLength={2400} value={draft.story||''} placeholder="What happened? What made it special?" onChange={e=>setDraft({...draft,story:e.target.value})}/>
+ <AiSuggest purpose="story" text={[draft.title,draft.place,draft.date,draft.story].filter(Boolean).join('\n')} label="Suggest a better story" onApply={value=>setDraft(x=>({...x,story:value.slice(0,2400)}))}/>
+ <AiSuggest purpose="title" text={[draft.title,draft.place,draft.date,draft.story].filter(Boolean).join('\n')} label="Suggest a title" onApply={value=>setDraft(x=>({...x,title:value.slice(0,180)}))}/>
+ <AiSuggest purpose="chapters" text={[draft.title,draft.place,draft.date,draft.story,...draft.photos.map(p=>p.caption).filter(Boolean)].filter(Boolean).join('\n')} label="Suggest story chapters" onApply={value=>setDraft(x=>({...x,story:[x.story,value].filter(Boolean).join('\n\n').slice(0,2400)}))}/>
  <div className="collect-photo-header"><label>Photos (up to 12)</label><small>{draft.photos.length}/12</small></div>
  <div className="collect-photo-actions"><label className="photo-pick"><Upload size={17}/> Add from device<input hidden type="file" accept="image/*" multiple onChange={e=>{addLocal(e.target.files||[]);e.target.value=''}}/></label><span>Photos from your device stay local.</span></div>
  <div className="collect-url-row"><input placeholder="https://example.com/your-photo.jpg" type="url" value={newUrl} onChange={e=>setNewUrl(e.target.value)} aria-label="Public photo URL"/><button type="button" className="collect-outline" onClick={addRemote}><Link2 size={16}/> Add image URL</button></div>
