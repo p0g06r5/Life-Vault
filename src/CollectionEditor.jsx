@@ -37,6 +37,7 @@ export default function CollectionEditor({draft,setDraft,edit,onClose,onSave,add
   setAiBusy(true);setAiError('');
   try{
    const photos=draft.photos;
+   if(!photos.some(p=>p.caption?.trim()))throw Error('Add captions to at least one photo before using AI order.');
    const text='Photo IDs and user-provided captions (no actual images):\n'+photos.map(p=>p.id+': '+(p.caption?.trim()||'No caption')).join('\n');
    const response=await fetch('/api/assist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({purpose:'photo_order',text})});
    const payload=await response.json().catch(()=>({}));
@@ -48,7 +49,7 @@ export default function CollectionEditor({draft,setDraft,edit,onClose,onSave,add
    setDraft(d=>({...d,photos:ids.map(id=>indexed.get(id)).filter(Boolean)}));
   }catch(e){setAiError(e.message||'Could not reorder your photos.')}finally{setAiBusy(false)}
  }
- const canContinue=Boolean(draft.title?.trim());
+ const canContinue=Boolean(draft.title?.trim())&&draft.title.trim().length<=180;
  return <div className="lv-create-overlay" role="dialog" aria-modal="true" aria-label="Create a collection">
   <div className="lv-create-shell">
    <header className="lv-create-header">
@@ -74,12 +75,12 @@ export default function CollectionEditor({draft,setDraft,edit,onClose,onSave,add
      </div>
      <input ref={picker} hidden type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple onChange={e=>{add(e.target.files);e.target.value=''}}/>
      {draft.photos.length>0&&<div className="lv-create-photo-section">
-       <div className="lv-create-photo-heading"><strong>{draft.photos.length} / 12 photographs</strong><div className="lv-create-photo-tools"><button type="button" onClick={arrange} disabled={mixBusy||draft.photos.length<3}><Sparkles size={15}/> {mixBusy?'Mixing…':'Smart visual mix'}</button><button type="button" onClick={aiArrange} disabled={aiBusy||draft.photos.length<2}><Sparkles size={15}/> {aiBusy?'Curating…':'AI story order'}</button></div></div>
+       <div className="lv-create-photo-heading"><strong>{draft.photos.length} / 12 photographs</strong><div className="lv-create-photo-tools"><button type="button" onClick={arrange} disabled={mixBusy||draft.photos.length<3}><Sparkles size={15}/> {mixBusy?'Mixing…':'Balance by color'}</button><button type="button" onClick={aiArrange} disabled={aiBusy||draft.photos.length<2}><Sparkles size={15}/> {aiBusy?'Curating…':'AI order by captions'}</button></div></div>
        <div className="lv-create-photos">{draft.photos.map((photo,i)=><article key={photo.id} className="lv-create-photo" draggable onDragStart={e=>{e.stopPropagation();setMoving(photo.id);e.dataTransfer.effectAllowed='move'}} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.stopPropagation();e.preventDefault();dragPhoto(moving,photo.id)}} onDragEnd={()=>setMoving(null)}>
         <div className="lv-create-photo-frame"><img alt={photo.caption||'Collection photo'} src={photo.url}/><span>{pad(i+1)}</span><button aria-label="Remove photo" type="button" onClick={()=>removePhoto(photo.id)}><Trash2 size={15}/></button></div>
         <label><GripVertical size={14}/> <input value={photo.caption||''} maxLength={180} placeholder="Add a caption…" onChange={e=>setDraft(x=>({...x,photos:x.photos.map(p=>p.id===photo.id?{...p,caption:e.target.value}:p)}))}/></label>
        </article>)}</div>
-       <div className="lv-create-hint">Drag photographs to reorder. Smart arrange alternates captioned and uncaptioned photos for a balanced starting layout; it doesn't analyze image contents.</div>
+       <div className="lv-create-hint">Drag photographs to reorder. Balance by color reads reduced photo colors locally on this device. AI order uses only captions you entered and never uploads your images.</div>
      </div>}
     </section>}
     {step===1&&<section className="lv-create-section">
@@ -98,7 +99,7 @@ export default function CollectionEditor({draft,setDraft,edit,onClose,onSave,add
      <div className="lv-create-privacy"><ShieldCheck size={21}/><span>Personal collection · Your collection text syncs with your account. Photos selected from your device remain local until cloud media storage is enabled.</span></div>
     </section>}
    </div>
-   <footer className="lv-create-footer"><div>{notice&&<span role="status">{notice}</span>}<span>Step {step+1} of 3</span></div><div className="lv-create-footer-actions">{step>0&&<button type="button" className="lv-create-secondary" onClick={()=>setStep(i=>i-1)}>Previous</button>}{step<2?<button type="button" className="lv-create-next" disabled={!canContinue} onClick={()=>setStep(i=>i+1)}>Continue <ArrowRight size={16}/></button>:<button type="button" className="lv-create-next" disabled={!canContinue||busy} onClick={onSave}><Check size={16}/>{edit?'Save collection':'Create collection'}</button>}</div></footer>
+   <footer className="lv-create-footer"><div>{notice&&<span role="status">{notice}</span>}<span>Step {step+1} of 3</span></div><div className="lv-create-footer-actions">{step>0&&<button type="button" className="lv-create-secondary" onClick={()=>setStep(i=>i-1)}>Previous</button>}{aiError&&<span className="lv-create-ai-error" role="alert">{aiError}</span>}{step<2?<button type="button" className="lv-create-next" disabled={!canContinue} onClick={()=>setStep(i=>i+1)}>Continue <ArrowRight size={16}/></button>:<button type="button" className="lv-create-next" disabled={!canContinue||busy} onClick={onSave}><Check size={16}/>{edit?'Save collection':'Create collection'}</button>}</div></footer>
   </div>
  </div>
 }
