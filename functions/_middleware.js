@@ -12,8 +12,7 @@ export async function onRequest({request,env,next}){
   ok=check.ok;
  }catch{}
  if(!ok){
-  const response=Response.redirect(url.origin+'/login',302);
-  response.headers.set('Cache-Control','private, no-store');return response;
+  return new Response(null,{status:302,headers:{Location:url.origin+'/login','Cache-Control':'private, no-store'}});
  }
- const response=await next();response.headers.set('Cache-Control','private, no-store');return response;
+ const response=await next();const headers=new Headers(response.headers);headers.set('Cache-Control','private, no-store');return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
 }
