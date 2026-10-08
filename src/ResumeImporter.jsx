@@ -2,7 +2,7 @@ import React,{useRef,useState} from 'react';
 import {ArrowLeft,Check,FileText,UploadCloud,X} from 'lucide-react';
 import {parseResumeText,readResumeFile} from './resume-import.mjs';
 import './resume-import.css';
-const labels={experience:'Experience',education:'Education',certifications:'Certifications',projects:'Projects',skills:'Skills'};
+const labels={profile:'Basic profile',experience:'Experience',education:'Education',certifications:'Certifications',projects:'Projects',skills:'Skills'};
 export default function ResumeImporter({onClose,onImport}){
  const ref=useRef(null);
  const [filename,setFilename]=useState(''),[preview,setPreview]=useState(null),[selected,setSelected]=useState(Object.keys(labels)),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -15,7 +15,7 @@ export default function ResumeImporter({onClose,onImport}){
    const result=parseResumeText(text);
    if(!result.recognized.length)throw Error('No recognizable résumé sections found. Try adding standard headings such as Experience, Education, Skills and Certifications.');
    setFilename(file.name);setPreview(result);
-   setSelected(Object.keys(labels).filter(k=>result.data[k].length));
+   setSelected(Object.keys(labels).filter(k=>k==='profile'?Boolean(result.data.name||result.data.email||result.data.about):result.data[k].length));
   }catch(e){setError(e.message||'Unable to read this résumé.')}finally{setBusy(false)}
  }
  function finish(){
@@ -31,7 +31,7 @@ export default function ResumeImporter({onClose,onImport}){
    </div>
    {error&&<div className="lv-resume-error" role="alert">{error}</div>}
    {preview&&<div className="lv-resume-review"><div className="lv-resume-review-head"><div><span>REVIEW BEFORE IMPORTING</span><h3>Here's what we found.</h3></div><small>{preview.characters.toLocaleString()} characters extracted</small></div>
-    {Object.entries(labels).map(([kind,label])=><label key={kind} className="lv-resume-review-row"><input type="checkbox" disabled={!preview.data[kind].length} checked={selected.includes(kind)} onChange={e=>setSelected(list=>e.target.checked?[...list,kind]:list.filter(x=>x!==kind))}/><div><strong>{label}</strong><span>{preview.data[kind].length} {kind==='skills'?'skills':'items'} found</span>{kind!=='skills'&&preview.data[kind][0]&&<small>{preview.data[kind][0].title}</small>}</div></label>)}
+    {Object.entries(labels).map(([kind,label])=><label key={kind} className="lv-resume-review-row"><input type="checkbox" disabled={kind==='profile'?!Boolean(preview.data.name||preview.data.email||preview.data.about):!preview.data[kind].length} checked={selected.includes(kind)} onChange={e=>setSelected(list=>e.target.checked?[...list,kind]:list.filter(x=>x!==kind))}/><div><strong>{label}</strong><span>{kind==='profile'?'Name, email, or summary':preview.data[kind].length+' '+(kind==='skills'?'skills':'items')+' found'}</span>{kind==='profile'?<small>{preview.data.name||preview.data.email||'Résumé summary'}</small>:kind!=='skills'&&preview.data[kind][0]&&<small>{preview.data[kind][0].title}</small>}</div></label>)}
     <p><FileText size={16}/> Text extraction is best-effort. Please inspect and correct imported entries; formatting and dates may need adjustment. Existing portfolio content will be kept.</p>
     <button type="button" className="lv-resume-confirm" onClick={finish}><Check size={17}/> Import selected sections</button>
    </div>}
