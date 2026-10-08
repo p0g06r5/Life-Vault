@@ -3,6 +3,7 @@ import {Plus,ArrowLeft,ArrowRight,ArrowUpRight,MapPin,Images,Share2,Trash2,Penci
 import {makeShareLink,validRemoteImage,imageIsShareable} from './share.jsx';
 import './collections.css';
 import AiSuggest from './ai.jsx';
+import {useCloudDoc} from './cloud.jsx';
 const KEY='lifevault-collections-v1';
 const fresh=()=>({title:'',place:'',date:'',story:'',photos:[]});
 function getInitial(){
@@ -31,11 +32,11 @@ function fileToSmallData(file){
 }
 const uid=()=>typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(36).slice(2);
 export default function Collections({path,go,preview=false}){
- const [albums,setAlbums]=useState(getInitial);
+ const [albums,setAlbums,syncStatus]=useCloudDoc('collections');
  const [edit,setEdit]=useState(null),[draft,setDraft]=useState(fresh),[showEditor,setShowEditor]=useState(false),[newUrl,setNewUrl]=useState(''),[notice,setNotice]=useState(''),[copied,setCopied]=useState(false);
- const [storageError,setStorageError]=useState('');
+ 
  const [smartQuery,setSmartQuery]=useState('');
- useEffect(()=>{try{localStorage.setItem(KEY,JSON.stringify(albums));setStorageError('')}catch{setStorageError('Browser storage is full. Your latest edits could not be saved; use smaller or fewer local photos.')}},[albums]);
+
  useEffect(()=>{if(!notice)return;const t=setTimeout(()=>setNotice(''),4500);return()=>clearTimeout(t)},[notice]);
  const detailId=path.startsWith('/collections/')?decodeURIComponent(path.slice('/collections/'.length)):null;
  const active=albums.find(x=>x.id===detailId);
@@ -94,12 +95,12 @@ export default function Collections({path,go,preview=false}){
  <AiSuggest purpose="title" text={[draft.title,draft.place,draft.date,draft.story].filter(Boolean).join('\n')} label="Suggest a title" onApply={value=>setDraft(x=>({...x,title:value.slice(0,180)}))}/>
  <AiSuggest purpose="chapters" text={[draft.title,draft.place,draft.date,draft.story,...draft.photos.map(p=>p.caption).filter(Boolean)].filter(Boolean).join('\n')} label="Suggest story chapters" onApply={value=>setDraft(x=>({...x,story:[x.story,value].filter(Boolean).join('\n\n').slice(0,2400)}))}/>
  <div className="collect-photo-header"><label>Photos (up to 12)</label><small>{draft.photos.length}/12</small></div>
- <div className="collect-photo-actions"><label className="photo-pick"><Upload size={17}/> Add from device<input hidden type="file" accept="image/*" multiple onChange={e=>{addLocal(e.target.files||[]);e.target.value=''}}/></label><span>Photos from your device stay local.</span></div>
+ <div className="collect-photo-actions"><label className="photo-pick"><Upload size={17}/> Add from device<input hidden type="file" accept="image/*" multiple onChange={e=>{addLocal(e.target.files||[]);e.target.value=''}}/></label><span>Device photos remain on this browser; only their collection text and public image URLs sync across devices.</span></div>
  <div className="collect-url-row"><input placeholder="https://example.com/your-photo.jpg" type="url" value={newUrl} onChange={e=>setNewUrl(e.target.value)} aria-label="Public photo URL"/><button type="button" className="collect-outline" onClick={addRemote}><Link2 size={16}/> Add image URL</button></div>
  <p className="collect-photo-note">Only publicly available HTTPS image URLs can travel in a share link. Cloud uploads aren't connected yet.</p>
  {draft.photos.length>0&&<div className="collect-editor-gallery">{draft.photos.map(photo=><div key={photo.id} className="collect-editor-photo"><img src={photo.url} alt=""/><button type="button" onClick={()=>removePhoto(photo.id)} aria-label="Remove photo">×</button><span>{photo.mode==='local'?'Device only':'Shareable URL'}</span><input placeholder="Optional caption" maxLength={180} value={photo.caption||''} onChange={e=>setDraft({...draft,photos:draft.photos.map(p=>p.id===photo.id?{...p,caption:e.target.value}:p)})}/></div>)}</div>}
  <button type="submit" className="primary collection-save"><Check size={16}/> {edit?'Save changes':'Create collection'}</button></form></div>}
- {storageError&&<div className="collection-error" role="alert">{storageError}</div>}
+ {syncStatus&&<div className="cloud-save-status" role="status">{syncStatus}</div>}
  {notice&&<div className="collection-toast" role="status">{notice}</div>}
  </div>;
 }
