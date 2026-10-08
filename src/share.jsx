@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ArrowLeft, ArrowUpRight, Images, LockKeyhole, MapPin } from 'lucide-react';
 import './share.css';
+import {formatCollectionDate} from './collection-date.js';
 
 const SHARE_VERSION=1;
 const MAX_PAYLOAD=10000;
@@ -45,7 +46,7 @@ export function SharedPage(){
    {record?<article className="shared-article">
     <div className="shared-kicker">A LITTLE PART OF SOMEONE'S LIFE</div>
     <h1>{record.title}</h1>
-    <div className="shared-meta">{record.place&&<span><MapPin size={15}/>{record.place}</span>}{record.date&&<span>{record.date}</span>}</div>
+    <div className="shared-meta">{record.place&&<span><MapPin size={15}/>{record.place}</span>}{record.date&&<span>{formatCollectionDate(record.date)}</span>}</div>
     {record.photos.length>0&&<div className={'shared-gallery '+(record.photos.length===1?'single':'')}>{record.photos.map((p,i)=><figure key={i}><img src={p.url} alt={p.caption||'Photo '+(i+1)} loading={i===0?'eager':'lazy'} referrerPolicy="no-referrer"/>{p.caption&&<figcaption>{p.caption}</figcaption>}</figure>)}</div>}
     {record.story&&<p className="shared-story">{record.story}</p>}
     <footer className="shared-foot">Shared from LifeVault <span>One page. One story.</span></footer>
