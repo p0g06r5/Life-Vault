@@ -1,9 +1,9 @@
 // LifeVault's local-only demonstration data layer.
 // No server, authentication, or secure document storage is provided yet.
 export const STORAGE_KEY = 'lifevault-v2';
-export const CATEGORIES = ['Experience', 'Project', 'Achievement', 'Education'];
+export const CATEGORIES = ['Experience', 'Project', 'Achievement', 'Education', 'Memory'];
 export const CATEGORY_PATH = {
-  Experience: '/experience', Project: '/projects', Achievement: '/achievements', Education: '/education'
+  Experience: '/experience', Project: '/projects', Achievement: '/achievements', Education: '/education', Memory: '/memories'
 };
 
 const sample = {
@@ -32,18 +32,19 @@ const sample = {
   }],
   achievements: [],
   education: [],
+  memories: [],
 };
 
 export const emptyForm = (type = 'Project') => ({
   type, title: '', organization: '', organizationId: '', role: '', timeframe: '', location: '',
-  year: new Date().getFullYear().toString(), issuer: '', description: '', visibility: 'Public',
+  year: new Date().getFullYear().toString(), issuer: '', description: '', visibility: 'Public', date: '', kind: 'Moment',
 });
 
-const arrays = { Experience: 'experiences', Project: 'projects', Achievement: 'achievements', Education: 'education' };
+const arrays = { Experience: 'experiences', Project: 'projects', Achievement: 'achievements', Education: 'education', Memory: 'memories' };
 export const collectionFor = type => arrays[type] || 'projects';
 export const titleFor = item => item.organization || item.title || 'Untitled';
 export const linkFor = (type, id) => type === 'Experience' ? '/experience/' + encodeURIComponent(id)
-  : type === 'Project' ? '/projects/' + encodeURIComponent(id) : CATEGORY_PATH[type];
+  : type === 'Project' ? '/projects/' + encodeURIComponent(id) : type === 'Memory' ? '/memories/' + encodeURIComponent(id) : CATEGORY_PATH[type];
 
 function loadJson(key) {
   try { const value = JSON.parse(localStorage.getItem(key)); return value && typeof value === 'object' ? value : null; }
@@ -59,6 +60,7 @@ export function initialData() {
       projects: current.projects,
       achievements: Array.isArray(current.achievements) ? current.achievements : [],
       education: Array.isArray(current.education) ? current.education : [],
+      memories: Array.isArray(current.memories) ? current.memories : [],
     };
   }
 
@@ -106,10 +108,12 @@ export function allEntries(data) {
     ...data.projects.map(item => ({ ...item, type: 'Project' })),
     ...data.achievements.map(item => ({ ...item, type: 'Achievement' })),
     ...data.education.map(item => ({ ...item, type: 'Education' })),
+    ...(data.memories || []).map(item => ({ ...item, type: 'Memory' })),
   ];
 }
 
 export function displayYear(item) {
+  if (item.date) return item.date;
   if (item.year) return item.year;
   return item.timeframe || '';
 }
