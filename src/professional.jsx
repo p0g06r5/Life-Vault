@@ -2,6 +2,7 @@ import React,{useEffect,useState} from 'react';
 import {Plus,Pencil,Trash2,ArrowUpRight,BriefcaseBusiness,FolderKanban,GraduationCap,Award,FileText,ExternalLink,Eye,Download,Check,ArrowLeft,Link2} from 'lucide-react';
 import './professional.css';
 import AiSuggest from './ai.jsx';
+import {useCloudDoc} from './cloud.jsx';
 
 const KEY='lifevault-professional-v1';
 const initial={name:'',headline:'',location:'',email:'',website:'',about:'',skills:[],experience:[],projects:[],education:[],certifications:[]};
@@ -17,8 +18,8 @@ function load(){try{const x=JSON.parse(localStorage.getItem(KEY));if(!x||typeof 
 function safeLink(url){try{const u=new URL(url);return ['https:','http:'].includes(u.protocol)?u.href:null}catch{return null}}
 function Entry({item,edit,remove,readOnly=false}){return <article className="pro-entry"><div className="pro-entry-body"><div className="pro-entry-top"><h3>{item.title}</h3><span>{item.period}</span></div>{item.organization&&<strong>{item.organization}</strong>}{item.location&&<small>{item.location}</small>}{item.description&&<p>{item.description}</p>}{safeLink(item.link)&&<a href={safeLink(item.link)} target="_blank" rel="noopener noreferrer">Open link <ExternalLink size={13}/></a>}</div>{!readOnly&&<div className="pro-entry-controls"><button onClick={edit} aria-label={'Edit '+item.title}><Pencil size={16}/></button><button onClick={remove} aria-label={'Delete '+item.title}><Trash2 size={16}/></button></div>}</article>}
 export default function Professional({preview=false}){
- const [data,setData]=useState(load),[tab,setTab]=useState('overview'),[editing,setEditing]=useState(null),[form,setForm]=useState({}),[mode,setMode]=useState(''),[skill,setSkill]=useState(''),[notice,setNotice]=useState(''),[readOnly,setReadOnly]=useState(false);
- useEffect(()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch{setNotice('Your browser storage is full. Changes may not be saved.')}},[data]);
+ const [data,setData,syncStatus]=useCloudDoc('professional'),[tab,setTab]=useState('overview'),[editing,setEditing]=useState(null),[form,setForm]=useState({}),[mode,setMode]=useState(''),[skill,setSkill]=useState(''),[notice,setNotice]=useState(''),[readOnly,setReadOnly]=useState(false);
+
  const set=(name,value)=>setData(x=>({...x,[name]:value}));
  const openProfile=()=>{setForm({name:data.name,headline:data.headline,location:data.location,email:data.email,website:data.website,about:data.about});setMode('profile');setEditing(null)};
  const openItem=(section,item=null)=>{setTab(section);setForm(item?{...item}:{title:'',organization:'',period:'',location:'',link:'',description:''});setEditing(item?.id||null);setMode(section)};
@@ -40,6 +41,7 @@ export default function Professional({preview=false}){
  {mode==='projects'&&<AiSuggest purpose="project" text={[form.title,form.organization,form.description].filter(Boolean).join('\n')} label="Improve project description" onApply={value=>setForm(x=>({...x,description:value}))}/>}
  {mode==='experience'&&<AiSuggest purpose="project" text={[form.title,form.organization,form.description].filter(Boolean).join('\n')} label="Improve experience description" onApply={value=>setForm(x=>({...x,description:value}))}/>}
  <button className="primary pro-save" type="submit"><Check size={16}/> Save changes</button></form></div>}
+ {syncStatus&&<div className="cloud-save-status" role="status">{syncStatus}</div>}
  {notice&&<div className="pro-toast" role="status">{notice}</div>}
  </section>;
 }
