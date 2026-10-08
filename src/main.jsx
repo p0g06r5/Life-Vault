@@ -3,7 +3,9 @@ import{createRoot}from'react-dom/client';
 import{Layers2,House,Clock3,Archive,BriefcaseBusiness,FolderKanban,Trophy,GraduationCap,LockKeyhole,Plus,Search,ArrowUpRight,ArrowRight,ArrowLeft,ChevronRight,Menu,X,Pencil,Trash2,Check,Eye,Sun,Moon,FileText,BookOpen,Feather,MapPin,CalendarDays,Heart,ShieldAlert,Command,Download,Upload,RotateCcw}from'lucide-react';
 import{initialData,saveData,emptyForm,collectionFor,safeId,allEntries}from'./data.js';
 import './redesign.css';
-const NAV=[['/','My Space',House],['/timeline','My Journey',Clock3],['/archive','Everything',Archive],['/memories','Memories',BookOpen],['/experience','Experiences',MapPin],['/projects','Creations',FolderKanban],['/achievements','Milestones',Trophy],['/education','Learning',GraduationCap],['/vault','The Vault',LockKeyhole]];
+import Collections from './collections.jsx';
+import {SharedPage} from './share.jsx';
+const NAV=[['/','My Space',House],['/timeline','My Journey',Clock3],['/archive','Everything',Archive],['/collections','Collections',BookOpen],['/memories','Memories',BookOpen],['/experience','Experiences',MapPin],['/projects','Creations',FolderKanban],['/achievements','Milestones',Trophy],['/education','Learning',GraduationCap],['/vault','The Vault',LockKeyhole]];
 const labels={Experience:'experiences',Project:'projects',Achievement:'achievements',Education:'education',Memory:'memories'};
 const paths={Experience:'/experience',Project:'/projects',Achievement:'/achievements',Education:'/education',Memory:'/memories'};
 const Icons={Experience:BriefcaseBusiness,Project:FolderKanban,Achievement:Trophy,Education:GraduationCap,Memory:BookOpen};
@@ -55,12 +57,13 @@ function App(){
  const findDetail=(base,coll)=>path.startsWith(base+'/')?visible(coll).find(x=>x.id===decodeURIComponent(path.slice(base.length+1))):null;
  const exp=findDetail('/experience',data.experiences),proj=findDetail('/projects',data.projects),memory=findDetail('/memories',data.memories),ach=findDetail('/achievements',data.achievements),edu=findDetail('/education',data.education);
  const sectionCards=[
- {name:'Memories',number:'01',hint:'Moments you want to remember',link:'/memories',icon:BookOpen},
- {name:'Experiences',number:'02',hint:'Places, travel, adventures and work',link:'/experience',icon:MapPin},
- {name:'Creations',number:'03',hint:'Anything you have made',link:'/projects',icon:FolderKanban},
- {name:'Milestones',number:'04',hint:'Little and big wins',link:'/achievements',icon:Trophy},
- {name:'Learning',number:'05',hint:'Lessons, skills and education',link:'/education',icon:GraduationCap},
- {name:'The Vault',number:'06',hint:'Your future private collection',link:'/vault',icon:LockKeyhole}
+ {name:'Collections',number:'01',hint:'Trip pages, photo stories and shareable moments',link:'/collections',icon:BookOpen},
+ {name:'Memories',number:'02',hint:'Moments you want to remember',link:'/memories',icon:Heart},
+ {name:'Experiences',number:'03',hint:'Places, travel, adventures and work',link:'/experience',icon:MapPin},
+ {name:'Creations',number:'04',hint:'Anything you have made',link:'/projects',icon:FolderKanban},
+ {name:'Milestones',number:'05',hint:'Little and big wins',link:'/achievements',icon:Trophy},
+ {name:'Learning',number:'06',hint:'Lessons, skills and education',link:'/education',icon:GraduationCap},
+ {name:'The Vault',number:'07',hint:'Your future private collection',link:'/vault',icon:LockKeyhole}
  ];
  const recent=entries.filter(x=>x.updatedAt).slice(0,3);
  const exportData=()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='lifevault-backup.json';a.click();URL.revokeObjectURL(url);setNotice('Backup downloaded.')};
@@ -73,11 +76,13 @@ function App(){
  {preview&&<div className="privacy-note"><Eye size={16}/> Display preview hides entries marked private. It is not a published profile or secure access boundary.</div>}
  {path==='/'&&<><section className="fresh-home">
 <div className="fresh-welcome"><div className="fresh-copy"><div className="eyebrow"><span className="eyebrow-mark"/> A PERSONAL SPACE FOR EVERY SIDE OF LIFE</div><h1>All the things that<br/>make you <em>you.</em></h1><p>Save a trip, a feeling, a family memory, a hobby, something you learned—or work you're proud of. Your whole life belongs here.</p><div className="home-actions"><button className="primary" onClick={()=>openAdd('Memory')}><Plus size={17}/> Add a moment</button><button className="text-link" onClick={()=>setDialog('search')}><Search size={17}/> Find something</button></div></div><div className="fresh-art"><div className="art-sun"/><div className="art-land a"/><div className="art-land b"/><div className="art-land c"/><div className="art-footer"><span>COLLECT A LIFE, NOT A RÉSUMÉ</span><ArrowUpRight size={17}/></div></div></div>
+<section className="feature-share"><div><span>NEW · SHARE ONE STORY AT A TIME</span><h2>Georgia deserves its own page.</h2><p>Make a page for a trip or memory. Send only that collection to a friend—not your whole life.</p></div><button onClick={()=>go('/collections')}>Explore collections <ArrowUpRight size={18}/></button></section>
 <div className="fresh-profile"><div><span>WELCOME TO YOUR SPACE</span><strong>{data.profile.name}</strong><small>{data.profile.subtitle||data.profile.headline}</small></div><button className="text-link" onClick={()=>{setDraftProfile({...data.profile});setDialog('profile')}}>Personalize <Pencil size={15}/></button></div>
 <div className="fresh-heading"><div><div className="eyebrow"><span className="eyebrow-mark"/> PICK A PART OF YOUR LIFE</div><h2>What would you like to explore?</h2></div><button className="text-link" onClick={()=>go('/archive')}>View everything <ArrowRight size={16}/></button></div>
 <div className="fresh-categories">{sectionCards.map((c,i)=><button className={'fresh-category cat-'+i} key={c.link} onClick={()=>go(c.link)}><span className="fresh-cat-icon"><c.icon size={22} strokeWidth={1.5}/></span><span className="fresh-cat-copy"><strong>{c.name}</strong><small>{c.hint}</small></span><ArrowUpRight size={17}/></button>)}</div>
 <div className="fresh-bottom"><section className="home-recent"><div className="subsection-head"><div><div className="eyebrow"><span className="eyebrow-mark"/> PICK UP WHERE YOU LEFT OFF</div><h2>Recently saved</h2></div><button className="text-link" onClick={()=>go('/archive')}>Open collection <ArrowRight size={16}/></button></div>{recent.length?recent.map(x=>row(x)):<div className="recent-empty"><span>✳</span><strong>Your story starts with one little moment.</strong><p>Save a place you visited or something that made you smile.</p></div>}</section><section className="fresh-prompt"><span>A THOUGHT TO START WITH</span><h3>Where have you been lately?</h3><p>A café, a road trip, a new city, your childhood neighborhood. Every experience is worth keeping.</p><button onClick={()=>openAdd('Experience')}>Capture an experience <ArrowRight size={17}/></button></section></div>
 </section></>}
+ {(path==='/collections'||path.startsWith('/collections/'))&&<Collections path={path} go={go} preview={preview}/>}
  {path==='/timeline'&&<>{heading('YOUR LIFE UNFOLDING','The story so far.','A timeline of everything you have chosen to preserve.')}{entries.length?Object.entries(entries.reduce((acc,x)=>{const yr=stamp(x)||'Undated';(acc[yr]??=[]).push(x);return acc},{})).sort((a,b)=>(Number(b[0])||0)-(Number(a[0])||0)).map(([year,items])=><section className="timeline-year" key={year}><div className="year-label">{year}</div><div className="year-entries">{items.map(x=>row(x))}</div></section>):empty('timeline')}</>}
  {path==='/archive'&&<>{heading('ALL THE PIECES OF YOU','Everything in one place.','Search and rediscover every part of your life, in your own way.')}{<div className="archive-toolbar"><label className="inline-search"><Search size={19}/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search names, places, ideas..." aria-label="Search archive"/></label><div className="filter-row" role="group" aria-label="Filter by category">{['All',...types].map(t=><button className={filter===t?'chosen':''} onClick={()=>setFilter(t)} key={t}>{t==='All'?'All':({Memory:'Memories',Experience:'Experiences',Project:'Creations',Achievement:'Milestones',Education:'Learning'}[t])}</button>)}</div></div>}{searchItems.length?<div className="archive-list">{searchItems.map(x=>row(x))}</div>:empty('search')}</>}
  {path==='/experience'&&<>{heading('THE PLACES AND MOMENTS','Experiences','Your trips, places, adventures, meaningful life events—and work if you want.','Experience')}{visible(data.experiences).length?<div className="archive-list">{visible(data.experiences).map(x=>row({...x,type:'Experience'}))}</div>:empty('experience','Experience')}</>}
@@ -106,4 +111,4 @@ function App(){
  {notice&&<div className="toast" role="status"><Check size={16}/>{notice}</div>}
  </div>;
 }
-createRoot(document.getElementById('root')).render(<App/>);
+createRoot(document.getElementById('root')).render(location.pathname==='/share'?<SharedPage/>:<App/>);
