@@ -4,8 +4,8 @@
 const MODEL='@cf/zai-org/glm-4.7-flash';
 const PURPOSES={
  story:'Improve the user-written personal memory into a warm, clear first-person paragraph. Preserve all known facts and uncertainty. Do not invent people, events, locations, dates, feelings or experiences. Output only the proposed paragraph, no quotation marks.',
- title:'Suggest a short evocative collection title based only on the supplied notes. Output only the title, maximum 8 words.',
- chapters:'Suggest 2-4 concise chapter headings for the collection based ONLY on its supplied title, place, date, notes and photo captions. Never infer image contents from file names. Output one heading per line; no numbering or commentary.',
+ title:'Suggest a short evocative memory page title based only on the supplied notes. Output only the title, maximum 8 words.',
+ chapters:'Suggest 2-4 concise chapter headings for the memory page based ONLY on its supplied title, place, date, notes and photo captions. Never infer image contents from file names. Output one heading per line; no numbering or commentary.',
  resume:'Improve the supplied professional summary into concise, natural, credible resume language. Do not invent years, tools, metrics, job titles or accomplishments. Output only the improved summary.',
  project:'Polish the supplied project description for a professional portfolio. Preserve all facts; never fabricate achievements, numbers, technologies, or scope. Output only the proposed description.',
  tags:'Suggest up to 6 simple topical tags for the supplied memory text, without guessing unknown details. Output a comma-separated list of tags.',
