@@ -55,11 +55,11 @@ export default function CollectionEditor({draft,setDraft,edit,onClose,onSave,add
  return <div className="lv-create-overlay" role="dialog" aria-modal="true" aria-label="Create a memory page">
   <div className="lv-create-shell">
    <header className="lv-create-header">
-    <button type="button" className="lv-create-back" onClick={onClose}><ArrowLeft size={17}/> Back to collections</button>
-    <span>lifevault <span className="lv-create-rule">/</span> {edit?'Edit memory page':'New collection'}</span>
+    <button type="button" className="lv-create-back" onClick={onClose}><ArrowLeft size={17}/> Back to my stories</button>
+    <span>lifevault <span className="lv-create-rule">/</span> {edit?'Edit memory page':'New memory page'}</span>
     <button type="button" className="lv-create-close" onClick={onClose} aria-label="Close editor">×</button>
    </header>
-   <nav className="lv-create-steps" aria-label="Collection creation progress">
+   <nav className="lv-create-steps" aria-label="Memory page creation progress">
     {['Your photos','Tell your story','Preview'].map((label,i)=><button type="button" key={label} className={step===i?'selected':''} onClick={()=>setStep(i)}><span>{pad(i+1)}</span>{label}</button>)}
    </nav>
    <div className="lv-create-body">
@@ -79,7 +79,7 @@ export default function CollectionEditor({draft,setDraft,edit,onClose,onSave,add
      {draft.photos.length>0&&<div className="lv-create-photo-section">
        <div className="lv-create-photo-heading"><strong>{draft.photos.length} / 12 photographs</strong><div className="lv-create-photo-tools"><button type="button" onClick={arrange} disabled={mixBusy||draft.photos.length<3}><Sparkles size={15}/> {mixBusy?'Mixing…':'Balance by color'}</button><button type="button" onClick={aiArrange} disabled={aiBusy||draft.photos.length<2}><Sparkles size={15}/> {aiBusy?'Curating…':'AI order by captions'}</button></div></div>
        <div className="lv-create-photos">{draft.photos.map((photo,i)=><article key={photo.id} className="lv-create-photo" draggable onDragStart={e=>{e.stopPropagation();setMoving(photo.id);e.dataTransfer.effectAllowed='move'}} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.stopPropagation();e.preventDefault();dragPhoto(moving,photo.id)}} onDragEnd={()=>setMoving(null)}>
-        <div className="lv-create-photo-frame"><img alt={photo.caption||'Collection photo'} src={photo.url}/><span>{pad(i+1)}</span><button aria-label="Remove photo" type="button" onClick={()=>removePhoto(photo.id)}><Trash2 size={15}/></button></div>
+        <div className="lv-create-photo-frame"><img alt={photo.caption||'Memory photo'} src={photo.url}/><span>{pad(i+1)}</span><button aria-label="Remove photo" type="button" onClick={()=>removePhoto(photo.id)}><Trash2 size={15}/></button></div>
         <label><GripVertical size={14}/> <input value={photo.caption||''} maxLength={180} placeholder="Add a caption…" onChange={e=>setDraft(x=>({...x,photos:x.photos.map(p=>p.id===photo.id?{...p,caption:e.target.value}:p)}))}/></label>
        </article>)}</div>
        <div className="lv-create-hint">Drag photographs to reorder. Balance by color reads reduced photo colors locally on this device. AI order uses only captions you entered and never uploads your images.</div>
@@ -96,9 +96,9 @@ export default function CollectionEditor({draft,setDraft,edit,onClose,onSave,add
      <div className="lv-create-ai"><Sparkles size={18}/><div><strong>A little help with your words</strong><p>Optional AI only reads the text you submit. It never sees your photographs.</p><AiSuggest purpose="story" text={[draft.title,draft.place,draft.date,draft.story].filter(Boolean).join('\n')} label="Help me tell this story" onApply={value=>set('story',value.slice(0,2400))}/></div></div>
     </section>}
     {step===2&&<section className="lv-create-section">
-     <div className="lv-create-eyebrow">03 — READY WHEN YOU ARE</div><h2>A page worth <em>keeping.</em></h2><p>See how your collection comes together before saving it.</p>
+     <div className="lv-create-eyebrow">03 — READY WHEN YOU ARE</div><h2>A page worth <em>keeping.</em></h2><p>See how your page comes together before saving it.</p>
      <div className="lv-create-review"><div className="lv-create-review-cover">{draft.photos?.length?<img alt="" src={draft.photos[0].url}/>:<Images size={50} strokeWidth={1}/>}</div><div className="lv-create-review-text"><small>{formatCollectionDate(draft.date)||'A moment of your choosing'} {draft.place?'· '+draft.place:''}</small><h3>{title}</h3><p>{draft.story||'Your story can be added whenever you are ready.'}</p><span>{draft.photos.length} photographs</span></div></div>
-     <div className="lv-create-privacy"><ShieldCheck size={21}/><span>Personal collection · Your collection text syncs with your account. Photos selected from your device remain local until cloud media storage is enabled.</span></div>
+     <div className="lv-create-privacy"><ShieldCheck size={21}/><span>Personal memory page · Your story text syncs with your account. Photos selected from your device remain local until cloud media storage is enabled.</span></div>
     </section>}
    </div>
    <footer className="lv-create-footer"><div>{notice&&<span role="status">{notice}</span>}<span>Step {step+1} of 3</span></div><div className="lv-create-footer-actions">{step>0&&<button type="button" className="lv-create-secondary" onClick={()=>setStep(i=>i-1)}>Previous</button>}{aiError&&<span className="lv-create-ai-error" role="alert">{aiError}</span>}{step<2?<button type="button" className="lv-create-next" disabled={!canContinue} onClick={()=>setStep(i=>i+1)}>Continue <ArrowRight size={16}/></button>:<button type="button" className="lv-create-next" disabled={!canContinue||busy} onClick={onSave}><Check size={16}/>{edit?'Save collection':'Save my page'}</button>}</div></footer>
