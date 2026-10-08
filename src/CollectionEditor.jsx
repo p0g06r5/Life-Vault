@@ -1,11 +1,12 @@
 import React,{useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,CalendarDays,Check,Images,MapPin,Plus,Sparkles,UploadCloud,GripVertical,Trash2,ShieldCheck} from 'lucide-react';
 import AiSuggest from './ai.jsx';
+import {arrangePhotos} from './photo-arrange.js';
 import './collection-editor.css';
 const pad=n=>String(n).padStart(2,'0');
 function normalizeDate(v=''){return {month:String(v).slice(0,7),day:/^\d{4}-\d{2}-\d{2}$/.test(v)?v:''}}
 export default function CollectionEditor({draft,setDraft,edit,onClose,onSave,addLocal,removePhoto,notice}){
- const [step,setStep]=useState(0),[dragging,setDragging]=useState(false),[busy,setBusy]=useState(false),[aiBusy,setAiBusy]=useState(false),[aiError,setAiError]=useState(''),[exactDate,setExactDate]=useState(Boolean(normalizeDate(draft.date).day)),[moving,setMoving]=useState(null);
+ const [step,setStep]=useState(0),[dragging,setDragging]=useState(false),[busy,setBusy]=useState(false),[mixBusy,setMixBusy]=useState(false),[aiBusy,setAiBusy]=useState(false),[aiError,setAiError]=useState(''),[exactDate,setExactDate]=useState(Boolean(normalizeDate(draft.date).day)),[moving,setMoving]=useState(null);
  const picker=useRef(null);
  const title=draft.title?.trim()||'Untitled collection';
  const set=(key,value)=>setDraft(x=>({...x,[key]:value}));
@@ -16,21 +17,14 @@ export default function CollectionEditor({draft,setDraft,edit,onClose,onSave,add
  const dateInfo=normalizeDate(draft.date);
  function changeMonth(v){set('date',exactDate&&dateInfo.day?.startsWith(v)?dateInfo.day:v)}
  function changeDay(v){set('date',v)}
- function arrange(){
-  // Local-only visual variety heuristic using existing image order, file-size indicators,
-  // and user-supplied captions. Does not claim to recognize image subjects.
-  setDraft(x=>{
-   const original=[...x.photos];
-   if(original.length<3)return x;
-   const withCaptions=original.filter(p=>p.caption?.trim());
-   const without=original.filter(p=>!p.caption?.trim());
-   const arranged=[];
-   while(withCaptions.length||without.length){
-    if(withCaptions.length)arranged.push(withCaptions.shift());
-    if(without.length)arranged.push(without.shift());
-   }
-   return {...x,photos:arranged};
-  });
+ async function arrange(){
+  if(mixBusy||draft.photos.length<3)return;
+  setMixBusy(true);
+  try{
+   const arranged=await arrangePhotos(draft.photos);
+   setDraft(d=>({...d,photos:arranged}));
+  }catch{setAiError('Could not analyze these images in this browser. You can still drag them manually.')}
+  finally{setMixBusy(false)}
  }
  function dragPhoto(source,target){
   if(source===null||source===target)return;
@@ -79,7 +73,7 @@ export default function CollectionEditor({draft,setDraft,edit,onClose,onSave,add
      </div>
      <input ref={picker} hidden type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple onChange={e=>{add(e.target.files);e.target.value=''}}/>
      {draft.photos.length>0&&<div className="lv-create-photo-section">
-       <div className="lv-create-photo-heading"><strong>{draft.photos.length} / 12 photographs</strong><div className="lv-create-photo-tools"><button type="button" onClick={arrange}><Sparkles size={15}/> Smart arrange</button><button type="button" onClick={aiArrange} disabled={aiBusy||draft.photos.length<2}><Sparkles size={15}/> {aiBusy?'Curating…':'AI story order'}</button></div></div>
+       <div className="lv-create-photo-heading"><strong>{draft.photos.length} / 12 photographs</strong><div className="lv-create-photo-tools"><button type="button" onClick={arrange} disabled={mixBusy||draft.photos.length<3}><Sparkles size={15}/> {mixBusy?'Mixing…':'Smart visual mix'}</button><button type="button" onClick={aiArrange} disabled={aiBusy||draft.photos.length<2}><Sparkles size={15}/> {aiBusy?'Curating…':'AI story order'}</button></div></div>
        <div className="lv-create-photos">{draft.photos.map((photo,i)=><article key={photo.id} className="lv-create-photo" draggable onDragStart={e=>{e.stopPropagation();setMoving(photo.id);e.dataTransfer.effectAllowed='move'}} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.stopPropagation();e.preventDefault();dragPhoto(moving,photo.id)}} onDragEnd={()=>setMoving(null)}>
         <div className="lv-create-photo-frame"><img alt={photo.caption||'Collection photo'} src={photo.url}/><span>{pad(i+1)}</span><button aria-label="Remove photo" type="button" onClick={()=>removePhoto(photo.id)}><Trash2 size={15}/></button></div>
         <label><GripVertical size={14}/> <input value={photo.caption||''} maxLength={180} placeholder="Add a caption…" onChange={e=>setDraft(x=>({...x,photos:x.photos.map(p=>p.id===photo.id?{...p,caption:e.target.value}:p)}))}/></label>
