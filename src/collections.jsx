@@ -6,8 +6,9 @@ import AiSuggest from './ai.jsx';
 import {useCloudDoc} from './cloud.jsx';
 import CollectionEditor from './CollectionEditor.jsx';
 import {formatCollectionDate} from './collection-date.js';
+import {storyTemplates,templateFor} from './story-templates.js';
 const KEY='lifevault-collections-v1';
-const fresh=()=>({title:'',place:'',date:'',story:'',photos:[]});
+const fresh=(kind='memory')=>({title:'',place:'',date:'',story:'',photos:[],kind});
 function getInitial(){
  try{const x=JSON.parse(localStorage.getItem(KEY));return Array.isArray(x)?x.filter(y=>y&&typeof y.title==='string').slice(0,100):[]}catch{return []}
 }
@@ -37,16 +38,16 @@ export default function Collections({path,go,preview=false}){
  const [albums,setAlbums,syncStatus]=useCloudDoc('collections');
  const [edit,setEdit]=useState(null),[draft,setDraft]=useState(fresh),[showEditor,setShowEditor]=useState(false),[notice,setNotice]=useState(''),[copied,setCopied]=useState(false);
  
- const [smartQuery,setSmartQuery]=useState('');
+ const [category,setCategory]=useState('all');
 
  useEffect(()=>{if(!notice)return;const t=setTimeout(()=>setNotice(''),4500);return()=>clearTimeout(t)},[notice]);
  const detailId=path.startsWith('/collections/')?decodeURIComponent(path.slice('/collections/'.length)):null;
  const active=albums.find(x=>x.id===detailId);
- const start=()=>{setEdit(null);setDraft(fresh());setShowEditor(true)};
+ const start=(kind='memory')=>{setEdit(null);setDraft(fresh(kind));setShowEditor(true)};
  const startEdit=album=>{setEdit(album.id);setDraft({...album,photos:[...(album.photos||[])]});setShowEditor(true)};
  const save=()=>{if(!draft.title.trim())return;
   const album={...draft,title:draft.title.trim().slice(0,180),id:edit||uid(),updatedAt:new Date().toISOString(),photos:(draft.photos||[]).slice(0,12)};
-  setAlbums(x=>edit?x.map(y=>y.id===edit?album:y):[album,...x]);setShowEditor(false);setNotice(edit?'Collection updated.':'Your collection is ready.');go('/collections/'+encodeURIComponent(album.id));
+  setAlbums(x=>edit?x.map(y=>y.id===edit?album:y):[album,...x]);setShowEditor(false);setNotice(edit?'Story updated.':'Your memory page is ready.');go('/collections/'+encodeURIComponent(album.id));
  };
  const addLocal=async files=>{
   const capacity=Math.max(0,12-draft.photos.length);
@@ -73,13 +74,17 @@ export default function Collections({path,go,preview=false}){
  const usable=album=>imageIsShareable(album);
  return <div className="collect-root">
  {path==='/collections'&&<>
-  <div className="collect-hero"><span className="collect-eyebrow">PAGES YOU CAN SHARE ONE AT A TIME</span><h1>Your life, in collections.</h1><p>A trip to Georgia. A family celebration. A favorite place. Create a beautiful, separate page for anything you want to remember—and choose which page to send.</p>{!preview&&<button className="primary" onClick={start}><Plus size={17}/> Make a collection</button>}</div>
-  <div className="collect-subheading"><span>YOUR COLLECTIONS</span><strong>{albums.length} {albums.length===1?'page':'pages'}</strong></div>
-  {albums.length?<div className="collection-grid">{albums.map(album=><button key={album.id} className="collection-cover" onClick={()=>go('/collections/'+encodeURIComponent(album.id))}><div className="collection-thumb">{album.photos?.length?<img src={album.photos[0].url} alt=""/>:<span className="collection-illustration"><MapPin size={32} strokeWidth={1.2}/></span>}<span className="collection-count"><Images size={13}/> {album.photos?.length||0}</span></div><div className="collection-summary"><small>{album.place||'PERSONAL COLLECTION'}</small><strong>{album.title}</strong><span>{album.story||'Open this collection to see the whole page.'}</span><div>Open this page <ArrowUpRight size={17}/></div></div></button>)}</div>:<div className="collection-empty"><span className="collection-empty-icon"><Images size={32} strokeWidth={1.3}/></span><h2>Where have you been lately?</h2><p>Start with Georgia, a weekend trip, or something you want to share with a friend.</p>{!preview&&<button className="primary" onClick={start}><Plus size={16}/> Create your first page</button>}</div>}
+  <div className="stories-intro"><span className="collect-eyebrow">YOUR STORIES, YOUR WAY</span><h1>Moments worth keeping.</h1><p>Make a beautiful page for a trip, celebration, family memory or anything else you want to look back on. Choose a starting point; add only what feels right.</p><button className="primary" onClick={()=>start('memory')}><Plus size={17}/> Create a memory page</button></div>
+  <section className="stories-start"><div className="stories-heading"><span>START WITH SOMETHING FAMILIAR</span><h2>What would you like to remember?</h2><p>Pick a theme and we'll show you exactly where to start. Everything is editable.</p></div>
+  <div className="stories-templates">{storyTemplates.map((template,i)=><button type="button" key={template.id} className="stories-template" onClick={()=>start(template.id)}><span className="stories-template-number">0{i+1}</span><strong>{template.name}</strong><span>{template.short}</span><small>{template.sample} <ArrowUpRight size={13}/></small></button>)}</div></section>
+  <section className="stories-library"><div className="stories-library-head"><div><span className="collect-eyebrow">YOUR SAVED PAGES</span><h2>Pages from your life</h2><p>Each one is your own story, with its own photographs and details.</p></div><strong>{albums.length} {albums.length===1?'page':'pages'}</strong></div>
+  {albums.length>0&&<div className="stories-filter"><button className={category==='all'?'active':''} onClick={()=>setCategory('all')}>All pages</button>{storyTemplates.filter(t=>albums.some(a=>(a.kind||'memory')===t.id)).map(t=><button key={t.id} className={category===t.id?'active':''} onClick={()=>setCategory(t.id)}>{t.name}</button>)}</div>}
+  {albums.some(a=>category==='all'||(a.kind||'memory')===category)?<div className="collection-grid">{albums.filter(a=>category==='all'||(a.kind||'memory')===category).map(album=><button key={album.id} className="collection-cover" onClick={()=>go('/collections/'+encodeURIComponent(album.id))}><div className="collection-thumb">{album.photos?.length?<img src={album.photos[0].url} alt=""/>:<span className="collection-illustration"><Images size={32} strokeWidth={1.2}/></span>}<span className="collection-count"><Images size={13}/> {album.photos?.length||0}</span></div><div className="collection-summary"><small>{templateFor(album.kind).name.toUpperCase()} {album.place?' · '+album.place:''}</small><strong>{album.title}</strong><span>{album.story||'Tap to open this story.'}</span><div>Open this page <ArrowUpRight size={17}/></div></div></button>)}</div>:<div className="collection-empty"><span className="collection-empty-icon"><Images size={32} strokeWidth={1.3}/></span><h2>{category==='all'?'Your first story starts here.':'Nothing in this section yet.'}</h2><p>{category==='all'?'Choose one of the themes above to add photos and a few meaningful details.':'Try another theme or start a new page.'}</p><button className="primary" onClick={()=>start(category==='all'?'memory':category)}><Plus size={16}/> Start a page</button></div>}
+  </section>
  </>}
  {detailId&&active&&<>
  <button className="collect-back" onClick={()=>go('/collections')}><ArrowLeft size={17}/> All collections</button>
- <article className="album-page"><header className="album-top"><span>MY PERSONAL COLLECTION</span><span>{formatCollectionDate(active.date)||'A PAGE FROM MY LIFE'}</span></header><h1>{active.title}</h1><div className="album-info">{active.place&&<span><MapPin size={16}/>{active.place}</span>}<span>{active.photos?.length||0} photos</span></div>
+ <article className="album-page"><header className="album-top"><span>{templateFor(active.kind).name.toUpperCase()}</span><span>{formatCollectionDate(active.date)||'A PAGE FROM MY LIFE'}</span></header><h1>{active.title}</h1><div className="album-info">{active.place&&<span><MapPin size={16}/>{active.place}</span>}<span>{active.photos?.length||0} photos</span></div>
  {active.photos?.length>0?<div className={'album-gallery '+(active.photos.length===1?'alone':'')}>{active.photos.map((photo,i)=><figure key={photo.id||i}><img src={photo.url} alt={photo.caption||'Collection photo '+(i+1)}/>{photo.caption&&<figcaption>{photo.caption}</figcaption>}</figure>)}</div>:<div className="album-empty-photo"><Images size={32}/><span>Photos and memories can live together here.</span></div>}
  {active.story&&<p className="album-story">{active.story}</p>}
  </article>
