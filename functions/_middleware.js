@@ -3,6 +3,11 @@
 export async function onRequest({request,env,next}){
  const url=new URL(request.url);
  const p=url.pathname;
+ // Keep old shared navigation and bookmarks working after My Stories rename.
+ if(p==='/collections'||p.startsWith('/collections/')){
+  const destination=new URL('/stories'+p.slice('/collections'.length)+url.search,url.origin);
+  return new Response(null,{status:308,headers:{Location:destination.toString(),'Cache-Control':'no-store'}});
+ }
  if(request.method!=='GET'&&request.method!=='HEAD')return next();
  if(p==='/share'||p.startsWith('/share/')||p==='/login'||p==='/register'||p.startsWith('/api/')||p.startsWith('/assets/')||p.startsWith('/_')||p==='/favicon.ico'||p==='/robots.txt'||/\.(?:js|css|png|jpg|jpeg|webp|svg|woff2?|ico|json|txt|map)$/i.test(p))return next();
  if(!env.BACKEND_API)return Response.redirect(url.origin+'/login',302);
