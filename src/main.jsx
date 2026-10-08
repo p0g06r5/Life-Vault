@@ -1,13 +1,14 @@
 import React,{useState,useEffect,useRef} from 'react';
 import{createRoot}from'react-dom/client';
 import{Layers2,House,Clock3,Archive,BriefcaseBusiness,FolderKanban,Trophy,GraduationCap,LockKeyhole,Plus,Search,ArrowUpRight,ArrowRight,ArrowLeft,ChevronRight,Menu,X,Pencil,Trash2,Check,Eye,Sun,Moon,FileText,BookOpen,Feather,MapPin,CalendarDays,Heart,ShieldAlert,Command,Download,Upload,RotateCcw}from'lucide-react';
-import{initialData,saveData,emptyForm,collectionFor,safeId,allEntries}from'./data.js';
+import{emptyForm,collectionFor,safeId,allEntries}from'./data.js';
 import './redesign.css';
 import Collections from './collections.jsx';
 import Professional from './professional.jsx';
 import AiSuggest from './ai.jsx';
 import AuthPage from './AuthPage.jsx';
 import AuthBadge from './AuthBadge.jsx';
+import CloudWorkspace,{useCloudDoc} from './cloud.jsx';
 import {SharedPage} from './share.jsx';
 const NAV=[['/','My Space',House],['/collections','Collections',BookOpen],['/archive','Explore',Archive],['/professional','Professional',BriefcaseBusiness],['/vault','The Vault',LockKeyhole]];
 const SUBNAV=[['/timeline','My Journey'],['/memories','Memories'],['/experience','Experiences'],['/projects','Creations'],['/achievements','Milestones'],['/education','Learning']];
@@ -23,10 +24,10 @@ const stamp=x=>String(x.date||x.year||x.timeframe||'').match(/(?:19|20)\d{2}/)?.
 const dateOf=x=>{const yr=stamp(x);return yr?Number(yr):0};
 const hasOwn=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
 function App(){
- const [data,setData]=useState(initialData),[path,setPath]=useState(norm(location.pathname)),[mobile,setMobile]=useState(false),[dialog,setDialog]=useState(''),[form,setForm]=useState(emptyForm('Memory')),[editing,setEditing]=useState(null),[draftProfile,setDraftProfile]=useState(data.profile);
+ const [data,setData,syncStatus]=useCloudDoc('space');
+ const [path,setPath]=useState(norm(location.pathname)),[mobile,setMobile]=useState(false),[dialog,setDialog]=useState(''),[form,setForm]=useState(emptyForm('Memory')),[editing,setEditing]=useState(null),[draftProfile,setDraftProfile]=useState(data.profile);
  const [q,setQ]=useState(''),[filter,setFilter]=useState('All'),[preview,setPreview]=useState(false),[dark,setDark]=useState(()=>localStorage.getItem('lifevault-theme')==='dark'),[notice,setNotice]=useState('');
  const searchRef=useRef(null),fileRef=useRef(null),toastRef=useRef(null);
- useEffect(()=>saveData(data),[data]);
  useEffect(()=>{document.documentElement.dataset.theme=dark?'dark':'light';localStorage.setItem('lifevault-theme',dark?'dark':'light')},[dark]);
  useEffect(()=>{const f=()=>{setPath(norm(location.pathname));setQ('')};window.addEventListener('popstate',f);return()=>window.removeEventListener('popstate',f)},[]);
  useEffect(()=>{if(!notice)return;const t=setTimeout(()=>setNotice(''),3700);return()=>clearTimeout(t)},[notice]);
@@ -76,8 +77,8 @@ function App(){
  return <div className="shell">
  <aside className={'rail '+(mobile?'rail-open':'')}><button className="brand" onClick={()=>go('/')}><span className="brand-icon"><Layers2 size={21}/></span><span>lifevault<small>YOUR STORY, IN ONE PLACE</small></span></button><span className="rail-caption">YOUR SPACE</span><nav aria-label="Main navigation">{NAV.map(([p,label,Icon],i)=><button key={p} onClick={()=>go(p)} className={(p==='/'?path==='/':path===p||path.startsWith(p+'/'))?'active':''}><Icon size={18} strokeWidth={1.65}/><span>{label}</span>{i===2&&entries.length>0&&<span className="rail-index">{entries.length}</span>}</button>)}</nav><div className="rail-bottom"><AuthBadge/><div className="rail-quote">“The details make a life.”<span>— A place for what matters</span></div><button onClick={()=>setDark(x=>!x)}><span>{dark?<Sun size={18}/>:<Moon size={18}/>}</span> {dark?'Light atmosphere':'Dark atmosphere'}</button></div></aside>
  {mobile&&<button className="veil" aria-label="Close menu" onClick={()=>setMobile(false)}/>}
- <div className="main"><header className="topbar"><button className="menu-trigger" aria-label="Open navigation" onClick={()=>setMobile(true)}><Menu size={22}/></button><div className="breadcrumb"><span>LifeVault</span><ChevronRight size={14}/><strong>{NAV.find(([p])=>p==='/'?path==='/':path===p||path.startsWith(p+'/'))?.[1]||SUBNAV.find(([p])=>path===p||path.startsWith(p+'/'))?.[1]||'Chapter'}</strong></div><div className="top-actions"><button className="search-trigger" onClick={()=>setDialog('search')}><Search size={18}/><span>Search anything</span><kbd>⌘ K</kbd></button><button className={'preview '+(preview?'on':'')} onClick={()=>setPreview(x=>!x)} title="Preview display-only mode"><Eye size={17}/><span>{preview?'Exit preview':'Preview'}</span></button>{!preview&&<button className="primary top-capture" onClick={()=>openAdd()}><Plus size={17}/> Add a chapter</button>}<button className="top-avatar" onClick={()=>{setDraftProfile({...data.profile});setDialog('profile')}} title="Edit introduction">{(data.profile.name||'Y').charAt(0).toUpperCase()}</button></div></header>
- <main className="content">
+ <div className="main"><header className="topbar"><button className="menu-trigger" aria-label="Open navigation" onClick={()=>setMobile(true)}><Menu size={22}/></button><div className="breadcrumb"><span>LifeVault</span><ChevronRight size={14}/><strong>{NAV.find(([p])=>p==='/'?path==='/':path===p||path.startsWith(p+'/'))?.[1]||SUBNAV.find(([p])=>path===p||path.startsWith(p+'/'))?.[1]||'Chapter'}</strong></div><div className="top-actions"><button className="search-trigger" onClick={()=>setDialog('search')}><Search size={18}/><span>Search anything</span><kbd>⌘ K</kbd></button>{!preview&&<button className="primary top-capture" onClick={()=>openAdd()}><Plus size={17}/> Add a chapter</button>}<button className="top-avatar" onClick={()=>{setDraftProfile({...data.profile});setDialog('profile')}} title="Edit introduction">{(data.profile.name||'Y').charAt(0).toUpperCase()}</button></div></header>
+ <main className="content">{syncStatus&&<div className="cloud-save-status" role="status">{syncStatus}</div>}
  {preview&&<div className="privacy-note"><Eye size={16}/> Display preview hides entries marked private. It is not a published profile or secure access boundary.</div>}
  {path==='/'&&<><section className="second-home">
 <div className="second-welcome"><div><span className="second-eyebrow">YOUR PERSONAL SPACE</span><h1>Good to see you<span className="second-comma">.</span></h1><p>Capture today. Relive tomorrow. Keep the little things close.</p></div><div className="second-quote">“A life well remembered<br/>is a life well lived.”</div></div>
@@ -128,4 +129,4 @@ function App(){
  {notice&&<div className="toast" role="status"><Check size={16}/>{notice}</div>}
  </div>;
 }
-createRoot(document.getElementById('root')).render(location.pathname==='/share'?<SharedPage/>:['/login','/register'].includes(location.pathname)?<AuthPage/>:<App/>);
+createRoot(document.getElementById('root')).render(location.pathname==='/share'?<SharedPage/>:<CloudWorkspace><App/></CloudWorkspace>);
