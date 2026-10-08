@@ -66,3 +66,16 @@
 @media(max-width:1200px){.fresh-categories{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:850px){.fresh-categories{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.feature-share{align-items:flex-start;flex-direction:column;gap:12px;padding:19px}.feature-share h2{font-size:24px}.feature-share button{font-size:11px}}
+
+/* Simpler LifeVault navigation: a collection, not a career dashboard */
+.explore-gateway{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0 45px}
+.explore-gateway button{display:flex;align-items:center;gap:16px;text-align:left;padding:22px;background:var(--paper);border:1px solid var(--border);border-radius:4px;transition:transform .2s,border-color .2s}
+.explore-gateway button:hover{transform:translateY(-2px);border-color:var(--accent)}
+.explore-gateway button>svg:first-child{flex:none;color:var(--accent)}
+.explore-gateway button>svg:last-child{flex:none;margin-left:auto;color:var(--accent)}
+.explore-gateway button>span{display:flex;flex-direction:column;gap:5px;min-width:0}
+.explore-gateway strong{font:24px var(--heading)}
+.explore-gateway small{font-size:11px;color:var(--muted);line-height:1.5}
+.explore-list-title{padding-top:8px;margin-bottom:18px}
+.explore-list-title h2{font-size:33px;margin:9px 0}
+@media(max-width:650px){.explore-gateway{grid-template-columns:1fr;gap:9px}.explore-gateway button{padding:17px}.explore-gateway strong{font-size:23px}}
