@@ -2,6 +2,7 @@ import React,{useRef,useState} from 'react';
 import {ArrowLeft,ArrowRight,CalendarDays,Check,Images,MapPin,Plus,Sparkles,UploadCloud,GripVertical,Trash2,ShieldCheck} from 'lucide-react';
 import AiSuggest from './ai.jsx';
 import {arrangePhotos} from './photo-arrange.js';
+import {formatCollectionDate} from './collection-date.js';
 import './collection-editor.css';
 const pad=n=>String(n).padStart(2,'0');
 function normalizeDate(v=''){return {month:String(v).slice(0,7),day:/^\d{4}-\d{2}-\d{2}$/.test(v)?v:''}}
@@ -93,7 +94,7 @@ export default function CollectionEditor({draft,setDraft,edit,onClose,onSave,add
     </section>}
     {step===2&&<section className="lv-create-section">
      <div className="lv-create-eyebrow">03 — READY WHEN YOU ARE</div><h2>A page worth <em>keeping.</em></h2><p>See how your collection comes together before saving it.</p>
-     <div className="lv-create-review"><div className="lv-create-review-cover">{draft.photos?.length?<img alt="" src={draft.photos[0].url}/>:<Images size={50} strokeWidth={1}/>}</div><div className="lv-create-review-text"><small>{draft.date||'A moment of your choosing'} {draft.place?'· '+draft.place:''}</small><h3>{title}</h3><p>{draft.story||'Your story can be added whenever you are ready.'}</p><span>{draft.photos.length} photographs</span></div></div>
+     <div className="lv-create-review"><div className="lv-create-review-cover">{draft.photos?.length?<img alt="" src={draft.photos[0].url}/>:<Images size={50} strokeWidth={1}/>}</div><div className="lv-create-review-text"><small>{formatCollectionDate(draft.date)||'A moment of your choosing'} {draft.place?'· '+draft.place:''}</small><h3>{title}</h3><p>{draft.story||'Your story can be added whenever you are ready.'}</p><span>{draft.photos.length} photographs</span></div></div>
      <div className="lv-create-privacy"><ShieldCheck size={21}/><span>Personal collection · Your collection text syncs with your account. Photos selected from your device remain local until cloud media storage is enabled.</span></div>
     </section>}
    </div>
