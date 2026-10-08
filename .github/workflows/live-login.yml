@@ -23,6 +23,25 @@ jobs:
           done
           echo 'Private homepage has not recovered; inspect Pages runtime logs' >&2
           exit 1
+      - name: Verify new collection and résumé screens reached production
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=https://life-vault-c3b.pages.dev
+          for attempt in $(seq 1 18); do
+            curl -fsSL --max-time 20 "$BASE/login" -o /tmp/lv-current.html
+            ASSET=$(grep -oE '/assets/index-[^" ]+\.js' /tmp/lv-current.html | head -1 || true)
+            if [ -n "$ASSET" ] && curl -fsSL --max-time 25 "$BASE$ASSET" -o /tmp/lv-current.js; then
+              if grep -Fq 'Drop your photographs here' /tmp/lv-current.js && grep -Fq 'Drop your résumé here' /tmp/lv-current.js; then
+                echo 'CONFIRMED: Collection Studio and Résumé Studio are present on production Pages.'
+                exit 0
+              fi
+            fi
+            echo "New studio screens not deployed yet, retry $attempt"
+            sleep 8
+          done
+          echo 'Could not confirm current frontend bundle reached Cloudflare Pages.' >&2
+          exit 1
       - name: Check login route and Pages service binding
         shell: bash
         run: |
