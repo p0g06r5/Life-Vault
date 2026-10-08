@@ -101,7 +101,7 @@ export default function CollectionEditor({draft,setDraft,edit,onClose,onSave,add
      <div className="lv-create-privacy"><ShieldCheck size={21}/><span>Personal memory page · Your story text syncs with your account. Photos selected from your device remain local until cloud media storage is enabled.</span></div>
     </section>}
    </div>
-   <footer className="lv-create-footer"><div>{notice&&<span role="status">{notice}</span>}<span>Step {step+1} of 3</span></div><div className="lv-create-footer-actions">{step>0&&<button type="button" className="lv-create-secondary" onClick={()=>setStep(i=>i-1)}>Previous</button>}{aiError&&<span className="lv-create-ai-error" role="alert">{aiError}</span>}{step<2?<button type="button" className="lv-create-next" disabled={!canContinue} onClick={()=>setStep(i=>i+1)}>Continue <ArrowRight size={16}/></button>:<button type="button" className="lv-create-next" disabled={!canContinue||busy} onClick={onSave}><Check size={16}/>{edit?'Save collection':'Save my page'}</button>}</div></footer>
+   <footer className="lv-create-footer"><div>{notice&&<span role="status">{notice}</span>}<span>Step {step+1} of 3</span></div><div className="lv-create-footer-actions">{step>0&&<button type="button" className="lv-create-secondary" onClick={()=>setStep(i=>i-1)}>Previous</button>}{aiError&&<span className="lv-create-ai-error" role="alert">{aiError}</span>}{step<2?<button type="button" className="lv-create-next" disabled={!canContinue} onClick={()=>setStep(i=>i+1)}>Continue <ArrowRight size={16}/></button>:<button type="button" className="lv-create-next" disabled={!canContinue||busy} onClick={onSave}><Check size={16}/>{edit?'Save changes':'Save my page'}</button>}</div></footer>
   </div>
  </div>
 }
