@@ -57,8 +57,14 @@ export default function Collections({path,go,preview=false}){
  const removeAlbum=album=>{if(!window.confirm('Delete this collection and its local photos? This cannot be undone.'))return;setAlbums(a=>a.filter(x=>x.id!==album.id));go('/collections')};
  const share=async album=>{
   try{
-   const url=makeShareLink(album);await navigator.clipboard.writeText(url);setCopied(true);setNotice('Share link copied. It shows only this collection snapshot.');setTimeout(()=>setCopied(false),2500);
-  }catch(error){setNotice(error.message||'Could not copy the link. Copy manually from the share preview.')}
+   const url=makeShareLink(album);
+   if(navigator.share){
+    try{await navigator.share({title:album.title,text:'Take a look at this LifeVault page',url});setNotice('Shared only this collection snapshot.');return}
+    catch(error){if(error.name==='AbortError')return}
+   }
+   await navigator.clipboard.writeText(url);
+   setCopied(true);setNotice('Link copied. It contains just this collection snapshot.');setTimeout(()=>setCopied(false),2500);
+  }catch(error){setNotice(error.message||'Unable to share. Try the friend-view preview and copy the URL.')}
  };
  const previewShare=album=>{try{const link=makeShareLink(album);window.open(link,'_blank','noopener,noreferrer')}catch(error){setNotice(error.message)}};
  const usable=album=>imageIsShareable(album);
@@ -74,7 +80,7 @@ export default function Collections({path,go,preview=false}){
  {active.photos?.length>0?<div className={'album-gallery '+(active.photos.length===1?'alone':'')}>{active.photos.map((photo,i)=><figure key={photo.id||i}><img src={photo.url} alt={photo.caption||'Collection photo '+(i+1)}/>{photo.caption&&<figcaption>{photo.caption}</figcaption>}</figure>)}</div>:<div className="album-empty-photo"><Images size={32}/><span>Photos and memories can live together here.</span></div>}
  {active.story&&<p className="album-story">{active.story}</p>}
  </article>
- <section className="album-sharing"><div><span>SHARE ONLY THIS PAGE</span><h2>Send this chapter, not your whole LifeVault.</h2><p>The generated link contains a snapshot of this page's text and public photo URLs. It does not show your other collections, profile, or vault.</p>{active.photos?.some(p=>p.mode==='local')&&<p className="album-caution"><ShieldAlert size={16}/> Photos added from your device stay in this browser and will NOT appear in the shared link. Use publicly hosted HTTPS photo URLs for shareable images until cloud uploads are implemented.</p>}</div><div className="album-actions"><button className="primary" onClick={()=>share(active)}><Share2 size={17}/>{copied?'Copied':'Copy share link'}</button><button className="collect-outline" onClick={()=>previewShare(active)}><Eye size={17}/> See friend's view</button>{!preview&&<button className="collect-outline" onClick={()=>startEdit(active)}><Pencil size={16}/> Edit collection</button>}{!preview&&<button className="collect-danger" onClick={()=>removeAlbum(active)}><Trash2 size={16}/> Delete</button>}</div></section>
+ <section className="album-sharing"><div><span>SHARE ONLY THIS PAGE</span><h2>Send this chapter, not your whole LifeVault.</h2><p>The generated link contains a snapshot of this page's text and public photo URLs. It does not show your other collections, profile, or vault.</p>{active.photos?.some(p=>p.mode==='local')&&<p className="album-caution"><ShieldAlert size={16}/> Photos added from your device stay in this browser and will NOT appear in the shared link. Use publicly hosted HTTPS photo URLs for shareable images until cloud uploads are implemented.</p>}</div><div className="album-actions"><button className="primary" onClick={()=>share(active)}><Share2 size={17}/>{copied?'Copied':'Share this page'}</button><button className="collect-outline" onClick={()=>previewShare(active)}><Eye size={17}/> See friend's view</button>{!preview&&<button className="collect-outline" onClick={()=>startEdit(active)}><Pencil size={16}/> Edit collection</button>}{!preview&&<button className="collect-danger" onClick={()=>removeAlbum(active)}><Trash2 size={16}/> Delete</button>}</div></section>
  <div className="share-facts"><LockKeyhole size={17}/><span>Anyone with the link can open this snapshot. It is not a secret, authenticated, revocable, or password-protected share. If you edit this collection later, previously copied links will not update.</span></div>
  </>}
  {detailId&&!active&&<div className="collection-empty"><h2>This collection isn't on this device.</h2><p>Collections are currently stored in the browser where they were created.</p><button className="collect-outline" onClick={()=>go('/collections')}>Back to collections</button></div>}
