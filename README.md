@@ -1,48 +1,48 @@
-# LifeVault
+# LifeVault — Your story, in one place
 
-LifeVault is a simple, spacious, **multi-page** personal portfolio prototype. It is designed to tell a person's story without becoming a social feed or a one-page résumé.
+An editorial, architecture-inspired personal archive built in React + Vite. LifeVault is not a social feed or a résumé dashboard. It gives memories, experiences, work, education, and milestones separate rooms in the same personal space.
 
-## Pages
+## Experience
 
-- **Home** — an introduction and links to the dedicated sections; no individual project is featured by default.
-- **Experience** — each organization has its own page.
-- **Experience → Projects** — related projects are linked to the organization that owns the work. For example, POS Device Health is nested under Walmart Global Tech.
-- **Projects** — organized by associated experience, with a separate group for independent projects.
-- **Achievements** — recognition and milestones, never conflated with ordinary projects.
-- **Education** — separate education entries.
-- **My Vault** — explains the planned secure document storage; no file uploads are enabled yet.
+- **Home** — spacious personal introduction, chapter directory and only recently **user-added** items (no automatic promotion of POS Health or projects into a hero card).
+- **Timeline** — chronological year-grouped chapters.
+- **Archive** — full-text browser search, category filters, and deep links.
+- **Experience** — each organization opens to its own page; projects can link to their related experience.
+- **Projects** — organized by the experience they belong to, or as independent work.
+- **Achievements** and **Education** — independent categories and detail views.
+- **Moments** — personal notes, memories, milestones with optional dates.
+- **My Vault** — explicitly marks secure upload as a future capability; offers local JSON backup and restore.
 
-This is currently a browser-only demo. Changes persist in **localStorage on that browser**. There is no live login, real user account, verified access control, or secure private document storage. Do not enter sensitive personal documents.
+All entry categories can be created, edited, and deleted. Profile introduction is editable. Universal capture defaults to a moment, with additional categories revealed on demand. On mobile, bottom navigation makes Home, Timeline, Archive and Add thumb-friendly. Dark theme and reduced-motion preferences are supported.
 
-## Run locally
+## Start locally
 
-```bash
+```sh
 npm install
 npm run dev
 ```
 
-## Production build
+Build with `npm run build`.
 
-```bash
-npm install
-npm run build
-```
+## Deploy on Cloudflare Pages
 
-The stylesheet is `src/redesign.css` and application data helpers are in `src/data.js`. Both are required for the build.
-
-## Cloudflare Pages (free)
-
-This repository is connected to Cloudflare Pages through GitHub. Configure:
-
-| Setting | Value |
+| Field | Value |
 |---|---|
 | Git repository | `p0g06r5/Life-Vault` |
 | Production branch | `main` |
-| Framework preset | `Vite` |
+| Framework | Vite |
 | Build command | `npm run build` |
-| Build output directory | `dist` |
-| Root directory | `/` |
+| Output folder | `dist` |
+| Root | `/` |
 
-If a Cloudflare build says it cannot find `src/redesign.css`, inspect the **commit SHA** on that build: the stylesheet exists in the current `main` branch. Rebuilding an *old deployment* retries the old commit rather than fetching the latest changes. Trigger a **new** deployment from the latest `main` commit instead.
+The `public/_redirects` fallback enables client-side routes on Pages. GitHub Actions checks the production build after pushes.
 
-This repository also runs a GitHub Actions build on pushes to `main` to catch compilation errors before deployment.
+## Browser-only prototype and privacy
+
+**LifeVault is not a production-secure document vault yet.** There is no account authentication, access control, cloud storage, backend encryption, or multi-device synchronization. Profile entries are stored in `localStorage` on this device. The **Public/Private** field is only a display label; **Preview** merely hides marked-private entries in the UI. Do not put sensitive information, identity documents, or confidential files into the app.
+
+For migration, existing `lifevault-v2` records are retained and earlier `lifevault-items` records are converted where possible. The expanded model adds a `memories` array without removing existing categories. Export a backup under **My Vault** before clearing site data or switching browsers.
+
+## Creative direction
+
+Warm ivory / charcoal, muted evergreen accent, editorial display serif with legible UI sans, restrained lines instead of dashboard cards, page-like detail views, context-preserving categories, subtle interaction feedback, accessible keyboard focus, and mobile-first navigation.
