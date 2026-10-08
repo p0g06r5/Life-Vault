@@ -56,3 +56,13 @@
 @media(max-width:850px){.fresh-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.fresh-welcome{grid-template-columns:minmax(0,1.15fr) minmax(190px,.85fr)}.fresh-art{min-height:260px}.fresh-copy h1{font-size:47px}.fresh-copy>p{font-size:12px}.fresh-bottom{grid-template-columns:1fr}}
 @media(max-width:650px){.fresh-welcome{grid-template-columns:1fr;gap:14px}.fresh-copy{padding:8px 0 0}.fresh-copy h1{font-size:clamp(39px,9vw,56px);margin:16px 0 12px}.fresh-copy>p{max-width:100%;font-size:13px}.fresh-art{min-height:170px;height:170px}.art-sun{width:80px;height:80px;top:15px}.art-footer{padding:11px 14px}.fresh-profile{align-items:flex-start;margin:15px 0 25px;padding:13px 0}.fresh-profile>div{display:block}.fresh-profile strong{display:block;margin:5px 0;font-size:21px}.fresh-profile small{display:block}.fresh-heading{align-items:flex-start}.fresh-heading h2{font-size:29px}.fresh-heading .text-link{font-size:10px;margin-top:20px}.fresh-categories{gap:10px}.fresh-category{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-height:138px;padding:14px}.fresh-cat-icon{width:35px;height:35px}.fresh-cat-copy strong{font-size:20px}.fresh-cat-copy small{font-size:10px}.fresh-category>svg{position:absolute;align-self:flex-end;margin-left:calc(50% - 50px)}.fresh-bottom{margin-top:40px}.fresh-prompt{min-height:190px}}
 @media(prefers-reduced-motion:reduce){.fresh-category{transition:none}}
+
+/* Focused sharing entry point: one story, never the whole account. */
+.feature-share{margin:4px 0 18px;padding:21px 25px;display:flex;align-items:center;justify-content:space-between;gap:25px;background:var(--soft);border-left:2px solid var(--accent)}
+.feature-share>div>span{font-size:9px;letter-spacing:1.5px;color:var(--accent);font-weight:700}
+.feature-share h2{font-size:26px;margin:7px 0 4px}.feature-share p{font-size:12px;max-width:550px;margin:0}
+.feature-share button{display:flex;align-items:center;gap:9px;font-weight:700;color:var(--accent);font-size:12px;white-space:nowrap;border-bottom:1px solid var(--accent);padding:8px 0}
+.fresh-categories{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:1200px){.fresh-categories{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:850px){.fresh-categories{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.feature-share{align-items:flex-start;flex-direction:column;gap:12px;padding:19px}.feature-share h2{font-size:24px}.feature-share button{font-size:11px}}
